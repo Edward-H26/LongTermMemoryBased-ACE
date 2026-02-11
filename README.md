@@ -109,7 +109,23 @@ python -m benchmark.run_v3 \
     --seed 42
 ```
 
-This clears v3 result files and the Neo4j database, then runs baseline and ACE inference in parallel. Use `--no-clear-results` and `--no-clear-db` to resume.
+This clears v3 result files and the Neo4j database, runs baseline and ACE inference in parallel, verifies 200/200 completion, then runs eval, error analysis, and generates `comparison_report_v3.md`.
+
+#### run_v3 parameters
+
+| Parameter | Default | Description |
+|-----------|---------|-------------|
+| `--manifest` | `benchmark/results/subset_manifest_v3_seed42_n200.json` | Path to the subset manifest JSON (task_ids, seed, max_samples). |
+| `--max-samples` | `200` | Number of tasks to run per pipeline. |
+| `--seed` | `42` | Random seed for reproducible subset selection (used when creating manifest). |
+| `--output-dir` | `benchmark/results` | Directory for all v3 output files. |
+| `--clear-results` | `True` | Delete all v3 result files (inference, graded, errors, reports) before starting. Use `--no-clear-results` to resume. |
+| `--clear-db` | `True` | Wipe all Neo4j nodes and relationships before starting. Use `--no-clear-db` to resume. |
+| `--with-report` | `True` | After inference completes, run eval, error analysis, and generate comparison_report_v3.md. Use `--no-with-report` to run inference only. |
+
+- `--no-clear-results`: Use when resuming after an interrupted run.
+- `--no-clear-db`: Use when resuming; keeps existing ACE memory.
+- `--no-with-report`: Use when you only need inference outputs and will run eval/compare separately.
 
 ### Step 1: Run baseline v3 (seed 42, 200 samples)
 

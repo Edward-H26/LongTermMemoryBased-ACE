@@ -23,6 +23,16 @@ from collections import defaultdict
 
 from dotenv import load_dotenv
 
+# #region agent log
+DEBUG_LOG = "/Users/edwardhu/Desktop/INFO490/LongTermMemoryBasedSelfEvolvingAlgorithm/.cursor/debug.log"
+def _dbg(msg, data):
+    try:
+        with open(DEBUG_LOG, "a", encoding="utf-8") as f:
+            f.write(json.dumps({"message": msg, "data": data, "timestamp": int(time.time() * 1000)}) + "\n")
+    except Exception:
+        pass
+# #endregion
+
 load_dotenv()
 
 from openai import OpenAI
@@ -327,6 +337,10 @@ def main():
     collector.reset()
     success_count = 0
     fail_count = 0
+    run_start = time.perf_counter()
+    # #region agent log
+    _dbg("run_start", {"stream": "ace", "total_pending": len(pending), "completed_from_resume": len(completed_ids), "num_contexts": len(context_groups), "hypothesisId": "H2,H4"})
+    # #endregion
 
     pbar = tqdm(total = len(pending), desc = "ACE V3")
 
@@ -338,6 +352,9 @@ def main():
             messages = item.get("messages", [])
             if not messages:
                 fail_count += 1
+                # #region agent log
+                _dbg("task_skip_empty", {"stream": "ace", "task_id": task_id, "hypothesisId": "H5"})
+                # #endregion
                 pbar.update(1)
                 continue
 
@@ -359,6 +376,10 @@ def main():
 
             if error:
                 fail_count += 1
+                # #region agent log
+                wall_ms = (time.perf_counter() - run_start) * 1000
+                _dbg("task_fail", {"stream": "ace", "tasks_processed": success_count + fail_count, "fail_count": fail_count, "wall_elapsed_ms": wall_ms, "hypothesisId": "H5"})
+                # #endregion
                 pbar.update(1)
                 continue
 
@@ -404,6 +425,10 @@ def main():
             }
             append_jsonl(result, args.output)
             success_count += 1
+            # #region agent log
+            wall_ms = (time.perf_counter() - run_start) * 1000
+            _dbg("task_complete", {"stream": "ace", "task_index": success_count + fail_count, "task_id": task_id, "latency_ms": metrics.get("latency_ms"), "wall_elapsed_ms": wall_ms, "total_written": success_count, "context_id": context_id[:8] if context_id else "", "hypothesisId": "H1,H3,H4"})
+            # #endregion
             pbar.update(1)
 
     pbar.close()

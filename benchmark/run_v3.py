@@ -54,6 +54,12 @@ def main():
         default=True,
         help="Wipe all Neo4j nodes and relationships before starting (default: True). Use --no-clear-db to resume.",
     )
+    parser.add_argument(
+        "--with-report",
+        action=argparse.BooleanOptionalAction,
+        default=True,
+        help="Run eval, error analysis, and comparison report after inference (default: True).",
+    )
     args = parser.parse_args()
 
     baseline_path = os.path.join(args.output_dir, "baseline_v3.jsonl")
@@ -61,7 +67,16 @@ def main():
     ace_metrics_path = os.path.join(args.output_dir, "ace_v3_metrics.json")
 
     if args.clear_results:
-        for path in [baseline_path, ace_path, ace_metrics_path]:
+        paths_to_clear = [
+            baseline_path, ace_path, ace_metrics_path,
+            os.path.join(args.output_dir, "baseline_v3_graded.jsonl"),
+            os.path.join(args.output_dir, "ace_v3_graded.jsonl"),
+            os.path.join(args.output_dir, "baseline_v3_graded_errors.jsonl"),
+            os.path.join(args.output_dir, "ace_v3_graded_errors.jsonl"),
+            os.path.join(args.output_dir, "comparison_report_v3.md"),
+            os.path.join(args.output_dir, "comparison_report_v3.json"),
+        ]
+        for path in paths_to_clear:
             if os.path.exists(path):
                 os.remove(path)
                 print(f"Cleared: {path}")
@@ -112,7 +127,25 @@ def main():
     if code_a != 0:
         print(f"ACE exited with code {code_a}")
 
-    sys.exit(0 if (code_b == 0 and code_a == 0) else 1)
+    if code_b != 0 or code_a != 0:
+        sys.exit(1)
+
+    def count_lines(path):
+        return sum(1 for _ in open(path)) if os.path.exists(path) else 0
+
+    b_count = count_lines(baseline_abs)
+    a_count = count_lines(ace_abs)
+    if b_count < args.max_samples or a_count < args.max_samples:
+        print(f"Error: incomplete inference. Baseline: {b_count}/{args.max_samples}, ACE: {a_count}/{args.max_samples}")
+        sys.exit(1)
+
+    if args.with_report:
+        subprocess.run(
+            [sys.executable, "-m", "benchmark.complete_v3_pipeline", "--skip-wait"],
+            check=True,
+        )
+
+    print("V3 pipeline complete.")
 
 
 if __name__ == "__main__":

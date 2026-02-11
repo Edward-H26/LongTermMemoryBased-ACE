@@ -19,6 +19,16 @@ import time
 
 from dotenv import load_dotenv
 
+# #region agent log
+DEBUG_LOG = "/Users/edwardhu/Desktop/INFO490/LongTermMemoryBasedSelfEvolvingAlgorithm/.cursor/debug.log"
+def _dbg(msg, data):
+    try:
+        with open(DEBUG_LOG, "a", encoding="utf-8") as f:
+            f.write(json.dumps({"message": msg, "data": data, "timestamp": int(time.time() * 1000)}) + "\n")
+    except Exception:
+        pass
+# #endregion
+
 load_dotenv()
 
 from openai import OpenAI
@@ -137,11 +147,18 @@ def main():
     print(f"Running inference on {len(pending)} tasks with {args.model}...")
     success_count = 0
     fail_count = 0
+    run_start = time.perf_counter()
+    # #region agent log
+    _dbg("run_start", {"stream": "baseline", "total_pending": len(pending), "completed_from_resume": len(completed_ids), "hypothesisId": "H2"})
+    # #endregion
 
     for item in tqdm(pending, desc = "Baseline V3"):
         messages = item.get("messages", [])
         if not messages:
             fail_count += 1
+            # #region agent log
+            _dbg("task_skip_empty", {"stream": "baseline", "task_id": get_task_id(item), "hypothesisId": "H5"})
+            # #endregion
             continue
 
         api_messages = [{"role": m["role"], "content": m["content"]} for m in messages]
@@ -150,6 +167,10 @@ def main():
 
         if error:
             fail_count += 1
+            # #region agent log
+            wall_ms = (time.perf_counter() - run_start) * 1000
+            _dbg("task_fail", {"stream": "baseline", "tasks_processed": success_count + fail_count, "fail_count": fail_count, "wall_elapsed_ms": wall_ms, "hypothesisId": "H5"})
+            # #endregion
             continue
 
         result = {
@@ -162,6 +183,10 @@ def main():
         }
         append_jsonl(result, args.output)
         success_count += 1
+        # #region agent log
+        wall_ms = (time.perf_counter() - run_start) * 1000
+        _dbg("task_complete", {"stream": "baseline", "task_index": success_count + fail_count, "task_id": get_task_id(item), "latency_ms": metrics.get("latency_ms"), "wall_elapsed_ms": wall_ms, "total_written": success_count, "hypothesisId": "H1,H3"})
+        # #endregion
 
     print(f"\nDone: {success_count} success, {fail_count} failed")
     print(f"Output: {args.output}")
