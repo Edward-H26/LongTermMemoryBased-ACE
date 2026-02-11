@@ -31,7 +31,7 @@ cp .env.example .env
 
 ### 1. Google Gemini API (Required)
 
-The Gemini API powers the ACE Reflector, which extracts lessons from execution traces. Gemini 3.0 Flash is the default model.
+The Gemini API powers the ACE Reflector, which extracts lessons from execution traces. `gemini-3-flash-preview` is the current default model in this repository.
 
 **How to get your API key:**
 
@@ -45,7 +45,7 @@ The Gemini API powers the ACE Reflector, which extracts lessons from execution t
 
 ```env
 GEMINI_API_KEY=your-gemini-api-key-here
-GEMINI_MODEL=gemini-3.0-flash
+GEMINI_MODEL=gemini-3-flash-preview
 ```
 
 **Pricing:** Free tier available with generous rate limits. No credit card required to start. See [ai.google.dev/gemini-api/docs/pricing](https://ai.google.dev/gemini-api/docs/pricing) for current limits.
@@ -53,7 +53,7 @@ GEMINI_MODEL=gemini-3.0-flash
 **Verify it works:**
 
 ```bash
-curl "https://generativelanguage.googleapis.com/v1beta/models/gemini-3.0-flash:generateContent?key=$GEMINI_API_KEY" \
+curl "https://generativelanguage.googleapis.com/v1beta/models/gemini-3-flash-preview:generateContent?key=$GEMINI_API_KEY" \
   -H "Content-Type: application/json" \
   -d '{"contents":[{"parts":[{"text":"Say hello"}]}]}'
 ```
@@ -93,7 +93,7 @@ NEO4J_PASSWORD=your-generated-password
 
 **Keep your instance alive:** The ACE agent writes to Neo4j on every execution (saving memory bullets), so regular usage prevents auto-pause. For infrequent use, visit the Aura Console and click "Resume" on your paused instance before running the agent.
 
-**V3 benchmark `--clear-db` (default: on):** The v3 inference script and `run_v3.py` wipe all nodes and relationships in the database before starting. Use a Neo4j instance dedicated to benchmarking, or pass `--no-clear-db` to resume without wiping.
+**V3 benchmark `--clear-db` (default: on):** `infer_ace_direct_v3.py` and `run_v3.py` wipe all nodes and relationships in the database before starting. Use a Neo4j instance dedicated to benchmarking, or pass `--no-clear-db` to resume without wiping.
 
 **Verify it works:**
 
@@ -208,7 +208,7 @@ TAVILY_API_KEY=tvly-...your-key-here
 |---|---|---|---|
 | `LLM_BACKEND` | `gemini` | No | Which LLM backend to use: `gemini` or `openai` |
 | `GEMINI_API_KEY` | (none) | **Yes** | Google Gemini API key from AI Studio |
-| `GEMINI_MODEL` | `gemini-3.0-flash` | No | Gemini model name for the ACE Reflector |
+| `GEMINI_MODEL` | `gemini-3-flash-preview` | No | Gemini model name for the ACE Reflector |
 | `OPENAI_API_KEY` | (none) | For benchmark | OpenAI API key from platform.openai.com |
 | `OPENAI_MODEL` | `gpt-5.1` | No | OpenAI model name for solver and benchmark |
 | `OPENAI_API_BASE` | (none) | No | Custom API base URL for OpenAI-compatible endpoints (HuggingFace, vLLM, etc.) |
@@ -242,6 +242,15 @@ TAVILY_API_KEY=tvly-...your-key-here
 | `ACE_WEIGHT_STRENGTH` | `0.55` | No | Weight for historical strength in retrieval scoring. Set to `0.25` for CL-bench. |
 | `ACE_WEIGHT_TYPE` | `0.20` | No | Weight for memory type priority in retrieval scoring |
 | `ACE_SEED_META_STRATEGIES` | `true` | No | Pre-seed new memory contexts with meta-strategy bullets targeting common failure modes |
+
+### ACE V3 Quality Gate Defaults
+
+| Variable | Default | Required | Description |
+|---|---|---|---|
+| `ACE_QG_GATE_SCORE_MIN` | `0.65` | No | Minimum task-level gate score required to apply memory updates |
+| `ACE_QG_LESSON_SCORE_MIN` | `0.60` | No | Minimum per-lesson quality score for lesson acceptance |
+| `ACE_QG_OVERLAP_MIN` | `0.10` | No | Minimum token-overlap score between question and lesson |
+| `ACE_QG_MAX_ACCEPTED_LESSONS` | `2` | No | Maximum accepted lessons per task after sorting by quality and overlap |
 
 ### Optional Search Tools
 
@@ -277,7 +286,7 @@ Minimal setup for interactive use. Uses Gemini as the sole LLM backend.
 ```env
 LLM_BACKEND=gemini
 GEMINI_API_KEY=your-gemini-key
-GEMINI_MODEL=gemini-3.0-flash
+GEMINI_MODEL=gemini-3-flash-preview
 
 NEO4J_URI=neo4j+s://your-instance.databases.neo4j.io
 NEO4J_USERNAME=neo4j
@@ -295,7 +304,7 @@ Full setup for running the baseline vs. ACE comparison on CL-bench.
 ```env
 LLM_BACKEND=openai
 GEMINI_API_KEY=your-gemini-key
-GEMINI_MODEL=gemini-3.0-flash
+GEMINI_MODEL=gemini-3-flash-preview
 OPENAI_API_KEY=your-openai-key
 OPENAI_MODEL=gpt-5.1
 
@@ -310,6 +319,10 @@ ACE_WEIGHT_RELEVANCE=0.55
 ACE_WEIGHT_STRENGTH=0.25
 ACE_WEIGHT_TYPE=0.20
 ACE_SEED_META_STRATEGIES=true
+ACE_QG_GATE_SCORE_MIN=0.65
+ACE_QG_LESSON_SCORE_MIN=0.60
+ACE_QG_OVERLAP_MIN=0.10
+ACE_QG_MAX_ACCEPTED_LESSONS=2
 ```
 
 ### Profile: HuggingFace Inference Endpoint
@@ -323,12 +336,103 @@ OPENAI_API_BASE=https://your-endpoint.endpoints.huggingface.cloud/v1
 OPENAI_MODEL=meta-llama/Llama-3.1-8B-Instruct
 
 GEMINI_API_KEY=your-gemini-key
-GEMINI_MODEL=gemini-3.0-flash
+GEMINI_MODEL=gemini-3-flash-preview
 
 NEO4J_URI=neo4j+s://your-instance.databases.neo4j.io
 NEO4J_USERNAME=neo4j
 NEO4J_PASSWORD=your-password
 ```
+
+---
+
+## V3 End-to-End Benchmarking
+
+### Recommended one-command run
+
+Use `run_v3` when you want deterministic subset selection, parallel baseline and ACE inference, and automatic post-inference evaluation/report generation.
+
+```bash
+python -m benchmark.run_v3 \
+  --manifest benchmark/results/subset_manifest_v3_seed42_n200.json \
+  --max-samples 200 \
+  --seed 42
+```
+
+Current defaults in `benchmark/run_v3.py`:
+
+- `--clear-results`: true
+- `--clear-db`: true
+- `--with-report`: true
+
+With defaults, the command:
+
+1. Clears existing v3 artifacts.
+2. Clears Neo4j.
+3. Runs `infer_baseline_v3` and `infer_ace_direct_v3` in parallel.
+4. Verifies output line counts.
+5. Runs `benchmark.complete_v3_pipeline --skip-wait`, which performs eval, error analysis, and comparison report generation.
+
+### Important constraint for non-200 runs
+
+`benchmark.complete_v3_pipeline.py` currently uses `TARGET = 200`.
+If `--max-samples` is not 200, run:
+
+- `python -m benchmark.run_v3 ... --no-with-report`
+
+Then run the eval, error analysis, and compare commands manually.
+
+### Manual sequence (explicit control)
+
+```bash
+python -m benchmark.infer_baseline_v3 \
+  --max-samples 200 \
+  --seed 42 \
+  --manifest benchmark/results/subset_manifest_v3_seed42_n200.json \
+  --output benchmark/results/baseline_v3.jsonl
+
+python -m benchmark.infer_ace_direct_v3 \
+  --max-samples 200 \
+  --seed 42 \
+  --manifest benchmark/results/subset_manifest_v3_seed42_n200.json \
+  --qg-gate-score-min 0.65 \
+  --qg-lesson-score-min 0.60 \
+  --qg-overlap-min 0.10 \
+  --qg-max-accepted-lessons 2 \
+  --output benchmark/results/ace_v3.jsonl
+
+python -m benchmark.eval \
+  --input benchmark/results/baseline_v3.jsonl \
+  --output benchmark/results/baseline_v3_graded.jsonl \
+  --judge-model gpt-5.1
+
+python -m benchmark.eval \
+  --input benchmark/results/ace_v3.jsonl \
+  --output benchmark/results/ace_v3_graded.jsonl \
+  --judge-model gpt-5.1
+
+python -m benchmark.error_analysis \
+  --input benchmark/results/baseline_v3_graded.jsonl \
+  --output benchmark/results/baseline_v3_graded_errors.jsonl
+
+python -m benchmark.error_analysis \
+  --input benchmark/results/ace_v3_graded.jsonl \
+  --output benchmark/results/ace_v3_graded_errors.jsonl
+
+python -m benchmark.compare \
+  --baseline benchmark/results/baseline_v3_graded.jsonl \
+  --ace benchmark/results/ace_v3_graded.jsonl \
+  --baseline-errors benchmark/results/baseline_v3_graded_errors.jsonl \
+  --ace-errors benchmark/results/ace_v3_graded_errors.jsonl \
+  --output benchmark/results/comparison_report_v3.md \
+  --title-label V3
+```
+
+### Reproducibility checks
+
+1. Baseline and ACE should share the same manifest path.
+2. Baseline and ACE graded files must have identical task-id sets.
+3. `benchmark.compare` fails fast if task-id sets differ.
+4. For resumed runs, verify there are no duplicate `task_id` rows before grading.
 
 ---
 
@@ -344,7 +448,10 @@ Check that `NEO4J_URI` starts with `neo4j+s://` (not `bolt://` or `neo4j://`). A
 Visit [console.neo4j.io](https://console.neo4j.io), find your instance, and click "Resume". Free instances pause after 3 days of no write activity.
 
 **"OPENAI_API_KEY not set" when running benchmarks:**
-The benchmark scripts (`infer_baseline.py`, `eval.py`, `error_analysis.py`) require an OpenAI API key even when the main CLI uses Gemini. Set `OPENAI_API_KEY` in your `.env`.
+The benchmark scripts (`run_v3.py`, `infer_baseline_v3.py`, `infer_ace_direct_v3.py`, `eval.py`, `error_analysis.py`) require OpenAI credentials either directly or in downstream stages. Set `OPENAI_API_KEY` in your `.env`.
+
+**`run_v3` fails on non-200 subset with report enabled:**
+`complete_v3_pipeline.py` currently checks for 200 lines. Use `--no-with-report` for non-200 runs, then run post-steps manually.
 
 **Google Search returns "GOOGLE_CSE_ID not configured":**
 This is expected if you have not set up a Programmable Search Engine. The `google_search` tool is optional. The agent will still work with CoT and ToT modes.

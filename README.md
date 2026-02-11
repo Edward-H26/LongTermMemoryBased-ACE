@@ -50,7 +50,7 @@ All configuration is via environment variables (set in `.env`):
 |---|---|---|
 | `LLM_BACKEND` | `gemini` | Backend: `gemini` or `openai` |
 | `GEMINI_API_KEY` | | Google Gemini API key |
-| `GEMINI_MODEL` | `gemini-3.0-flash` | Gemini model for ACE Reflector |
+| `GEMINI_MODEL` | `gemini-3-flash-preview` | Gemini model for ACE Reflector |
 | `OPENAI_API_KEY` | | OpenAI API key for GPT-5.1 |
 | `OPENAI_MODEL` | `gpt-5.1` | OpenAI model for solver/benchmark |
 | `NEO4J_URI` | | Neo4j connection URI |
@@ -98,7 +98,7 @@ python analyze_memory.py interactive           # Interactive mode
 
 ## CL-bench Benchmarking (V3 End to End)
 
-The v3 pipeline is deterministic and quality-gated. Baseline and ACE runs use the same seeded subset via a shared manifest. By default, both scripts clear existing results and wipe the Neo4j database before starting. Use `--no-clear-results` and `--no-clear-db` to resume interrupted runs.
+The v3 pipeline is deterministic and quality-gated. Baseline and ACE runs use the same seeded subset via a shared manifest. By default, baseline v3 clears only its output file, while ACE direct v3 clears output files and wipes Neo4j. Use `--no-clear-results` and `--no-clear-db` on ACE direct runs to resume interrupted execution.
 
 ### One-command parallel run (recommended)
 
@@ -126,6 +126,8 @@ This clears v3 result files and the Neo4j database, runs baseline and ACE infere
 - `--no-clear-results`: Use when resuming after an interrupted run.
 - `--no-clear-db`: Use when resuming; keeps existing ACE memory.
 - `--no-with-report`: Use when you only need inference outputs and will run eval/compare separately.
+
+`benchmark.complete_v3_pipeline.py` currently validates against a fixed target of 200 samples. For non-200 subset runs, use `--no-with-report` and run Steps 3-5 manually.
 
 ### Step 1: Run baseline v3 (seed 42, 200 samples)
 
@@ -216,6 +218,13 @@ python -m benchmark.compare \
 3. Report integrity check:
    `benchmark.compare` will fail if baseline and ACE graded files do not contain the same `task_id` set.
 
+## Documentation
+
+- `docs/ALGORITHM.md`: Runtime and benchmark algorithm specification, including V3 quality gate.
+- `docs/SETUP.md`: Full environment setup and end-to-end benchmark execution.
+- `docs/CL_BENCH_CALCULATION_DETAILS.md`: Upstream CL-bench metric and scoring calculations.
+- `docs/COMPARISON_REPORT_V2_CALCULATION_DETAILS.md`: Local V2 comparison report calculation details.
+
 ## Project Structure
 
 ```
@@ -250,7 +259,10 @@ LongTermMemoryBasedSelfEvolvingAlgorithm/
 │   ├── metrics.py               # Token/latency collection
 │   └── results/                 # Output directory
 └── docs/
-    └── ALGORITHM.md             # Detailed algorithm documentation
+    ├── ALGORITHM.md                             # Runtime and benchmark algorithm documentation
+    ├── SETUP.md                                 # Environment setup and benchmark workflow
+    ├── CL_BENCH_CALCULATION_DETAILS.md          # Upstream CL-bench calculation details
+    └── COMPARISON_REPORT_V2_CALCULATION_DETAILS.md # Local v2 report calculation details
 ```
 
 ## References

@@ -1,198 +1,255 @@
-# LTMBSE ACE Algorithm: Technical Documentation
+# LTMBSE ACE Algorithm (V3 Accurate Specification)
 
-## 1. Memory Model
+## 1. System Overview
 
-### Bullet Structure
+The project combines a LangGraph reasoning agent with ACE memory and a CL-bench benchmarking pipeline.
 
-Each memory bullet is a structured unit containing 23 fields:
+Core runtime graph:
 
-| Field | Type | Description |
-|---|---|---|
-| `id` | str | Unique identifier (MD5 hash of normalized content) |
-| `content` | str | The strategy, lesson, or domain concept |
-| `helpful_count` | int | Times marked as helpful |
-| `harmful_count` | int | Times marked as harmful |
-| `created_at` | str | ISO timestamp of creation |
-| `last_used` | str | ISO timestamp of last retrieval |
-| `tags` | List[str] | Categorization tags |
-| `semantic_strength` | float | Semantic memory component weight |
-| `episodic_strength` | float | Episodic memory component weight |
-| `procedural_strength` | float | Procedural memory component weight |
-| `semantic_access_index` | int | Access counter for semantic decay |
-| `episodic_access_index` | int | Access counter for episodic decay |
-| `procedural_access_index` | int | Access counter for procedural decay |
-| `learner_id` | str | Learner identifier for personalization |
-| `topic` | str | Inferred topic |
-| `concept` | str | Extracted concept |
-| `memory_type` | str | Primary type: semantic, episodic, or procedural |
-| `ttl_days` | int | Time-to-live for expiring bullets |
-| `content_hash` | str | SHA-256 hash for deduplication |
-| `context_scope_id` | str | Context scope for memory isolation (Enhancement 1) |
-
-### Three-Component Strength Model
-
-Each bullet carries three independent strength values corresponding to human memory systems:
-
-- **Semantic memory** (decay rate: 0.01): General domain knowledge and facts. Decays slowly, representing stable knowledge.
-- **Episodic memory** (decay rate: 0.05): Specific experiences and observations. Decays moderately, representing fading personal experiences.
-- **Procedural memory** (decay rate: 0.002): Step-by-step procedures and workflows. Decays very slowly, representing well-practiced skills.
-
-Only the primary memory type carries active strength. The others are zeroed. This ensures clean separation between knowledge types.
-
-### Access-Clock Exponential Decay
-
-Strength decays based on an access counter (not wall-clock time):
-
-```
-component_score = strength * (1 - decay_rate) ^ (access_clock - last_access_index)
+```text
+START -> router -> planner -> solver -> critic -> ace_learning -> END
 ```
 
-Every retrieval advances the global `access_clock` by 1. Bullets that are frequently retrieved maintain high scores; unused bullets gradually fade. The total bullet score is the sum of all three component scores.
+Core benchmark streams:
 
-## 2. Retrieval Scoring
+- Baseline v3: `benchmark/infer_baseline_v3.py`
+- ACE direct v3: `benchmark/infer_ace_direct_v3.py`
+- One-command orchestration: `benchmark/run_v3.py`
 
-### Configurable Weights (Enhancement 3)
+## 2. Memory Model
 
-The retrieval formula combines four signals with configurable weights:
+ACE memory stores structured bullets in Neo4j via `Neo4jMemoryStore`.
+Each bullet tracks content and usage signals, including semantic, episodic, and procedural strengths.
 
-```
-combined_score = W_relevance * relevance
-               + W_strength * normalized_strength
-               + W_type * type_priority
-               + bonus
-```
+Important operational properties:
 
-**Default weights** (original algorithm):
+1. Context isolation:
+   bullets are retrieved by `context_scope_id` to avoid cross-context contamination.
+2. Grow-and-refine updates:
+   delta application supports new, update, and remove operations.
+3. Decay-aware retrieval:
+   ranking blends relevance, strength, and memory type priority.
+
+Primary code paths:
+
+- `src/ace_memory.py`
+- `src/storage.py`
+
+## 3. Retrieval Scoring Defaults
+
+Current code defaults are loaded from environment in `src/ace_memory.py`:
+
+- `ACE_MEMORY_BASE_STRENGTH = 100.0`
 - `ACE_WEIGHT_RELEVANCE = 0.25`
 - `ACE_WEIGHT_STRENGTH = 0.55`
 - `ACE_WEIGHT_TYPE = 0.20`
 
-**CL-bench weights** (Enhancement 3):
-- `ACE_WEIGHT_RELEVANCE = 0.55`
-- `ACE_WEIGHT_STRENGTH = 0.25`
-- `ACE_WEIGHT_TYPE = 0.20`
+These are framework defaults. CL-bench experiments may tune relevance and strength weights separately.
 
-The CL-bench configuration prioritizes relevance because each context introduces completely novel knowledge, making historical strength less meaningful.
+## 4. V3 Quality Gate (Implemented)
 
-### Signal Definitions
+Quality gate logic is implemented in `src/ace_components.py`.
 
-- **Relevance**: Jaccard similarity between query terms and bullet content words.
-- **Normalized Strength**: Decay-adjusted score divided by baseline strength.
-- **Type Priority**: `procedural=1.0`, `episodic=0.7`, `semantic=0.4`.
-- **Bonus**: Additional scoring for visual needs (+0.2), persona match (+0.1).
+## 4.1 Config and Defaults
 
-## 3. Delta Update Lifecycle
+`QualityGateConfig` defaults:
 
-### Apply Delta
+- `gate_score_min = 0.65`
+- `lesson_score_min = 0.60`
+- `overlap_min = 0.10`
+- `max_accepted_lessons = 2`
 
-When the Curator produces a `DeltaUpdate`, the memory applies it in three steps:
+These can be overridden by:
 
-1. **New bullets**: Each new bullet is merged or added via `_merge_or_add_bullet()`. If a similar bullet exists (Jaccard >= 0.9), metadata is merged instead of creating a duplicate.
-2. **Update bullets**: Existing bullets receive helpful/harmful count adjustments.
-3. **Remove bullets**: Marked bullets are removed from all indexes.
+- `ACE_QG_GATE_SCORE_MIN`
+- `ACE_QG_LESSON_SCORE_MIN`
+- `ACE_QG_OVERLAP_MIN`
+- `ACE_QG_MAX_ACCEPTED_LESSONS`
 
-### Grow-and-Refine
+## 4.2 Scoring Components
 
-After every delta application:
-1. **Deduplication**: Pairwise Jaccard similarity check. Bullets exceeding the threshold (0.85) are merged, keeping the one with the higher helpful-harmful delta.
-2. **Pruning**: If total bullets exceed `max_bullets` (100), the lowest-scored bullets are removed.
+For each extracted lesson:
 
-## 4. Three-Role Pipeline
+1. Overlap score:
 
-### Reflector
-
-Analyzes execution traces and extracts concrete lessons. Takes the full execution trace (question, model answer, ground truth, tool calls) and produces a JSON array of lessons, each with content, type (success/failure/domain/tool), and tags.
-
-**Enhancement 5**: Accepts optional `rubric_feedback` parameter. When per-rubric satisfaction data is available from a prior evaluation pass, the Reflector appends PASS/FAIL status for each rubric to its analysis prompt, enabling more precise lesson extraction.
-
-### Curator
-
-Synthesizes lessons into delta updates. Operates in two modes:
-- **Heuristic mode** (default, no LLM calls): Directly maps lessons to new bullets using keyword-based memory type inference and similarity-based deduplication.
-- **LLM mode**: Uses an LLM to produce structured JSON delta updates with reasoning.
-
-### ACEPipeline
-
-Coordinates the full learning loop: Reflector -> Curator -> Memory.apply_delta(). Includes fallback lesson generation when the Reflector fails to extract lessons.
-
-## 5. LangGraph Integration
-
-### Graph Topology
-
-```
-START -> router -> planner -> solver -> critic -> ace_learning -> END
+```text
+overlap_score = |tokens(question) ∩ tokens(lesson)| / |tokens(question) ∪ tokens(lesson)|
 ```
 
-### Node Responsibilities
+2. Lesson quality score:
 
-- **Router**: Rule-based routing to CoT/ToT/ReAct based on query keywords. Retrieves initial bullets from ACE memory.
-- **Planner**: Sets solver parameters (breadth, depth, max_turns, temperature).
-- **Solver**: Executes the selected reasoning strategy with ACE-enriched prompts.
-- **Critic**: Cleans and extracts the final answer from solver output.
-- **ACE Learning**: Creates execution trace, runs Reflector + Curator, applies delta to memory.
+```text
+token_score = min(token_count / 20, 1.0) * 0.6
+tags_score = 0.2 if tags exist else 0.0
+type_score = 0.2 if type in {success, failure, domain, tool} else 0.0
+lesson_score = min(token_score + tags_score + type_score, 1.0)
+```
 
-### Bullet Injection Point (Enhancement 2)
+3. Lesson acceptance filter:
 
-Original: Prepends bullets to the system message (before context).
+```text
+accept if overlap_score >= overlap_min
+      and lesson_score >= lesson_score_min
+      and content is non-empty
+```
 
-Enhanced (`ACE_INJECTION_MODE=post_context`): Inserts bullets immediately before the last user message (after all context). This preserves model attention on the novel CL-bench context. Configurable via environment variable for A/B testing.
+4. Top-k cap:
 
-## 6. CL-bench Enhancements
+Accepted candidates are sorted by `(lesson_score, overlap_score)` descending, then truncated to `max_accepted_lessons`.
 
-### Enhancement 1: Context-Scoped Memory
+## 4.3 Task-Level Gate
 
-**Problem**: CL-bench has 500 distinct contexts (board games, legal systems, medical protocols). Global memory causes cross-domain interference.
+After accepted lessons are selected:
 
-**Solution**: `context_scope_id` field on Bullet + cache key = `learner_id:context_scope_id`. Bullets from one context do not appear in retrieval for a different context. Tasks within the same context (avg 3.8 per context, 51.1% sequential) share memory for intra-context learning.
+```text
+output_score = 1.0 if model output is non-empty else 0.0
+accepted_quality_avg = mean(accepted lesson scores)
+gate_score = 0.5 * output_score + 0.5 * accepted_quality_avg
+should_apply_update = accepted_lessons non-empty and gate_score >= gate_score_min
+```
 
-### Enhancement 2: Post-Context Bullet Injection
+Only if `should_apply_update` is true are accepted lessons curated into memory deltas.
 
-**Problem**: GPT-5.1 ignores context 55.3% of the time. Prepending ACE bullets before the context further diverts attention from the novel knowledge.
+## 4.4 Diagnostics Schema
 
-**Solution**: Inject bullets AFTER all context messages, immediately before the task question. The model processes the full novel context first, then sees the ACE strategies as supplementary reminders.
+Diagnostics returned by `apply_quality_gate` and attached to outputs include:
 
-### Enhancement 3: Relevance-Dominant Retrieval
+- `config`
+- `output_valid`
+- `output_score`
+- `accepted_quality_avg`
+- `gate_score`
+- `should_apply_update`
+- `num_lessons_input`
+- `num_lessons_accepted`
+- `num_lessons_rejected`
+- `rejection_counts`
+- `rejected_examples`
 
-**Problem**: The original formula weights strength at 0.55, causing frequently reinforced bullets from unrelated domains to dominate over relevant ones.
+In ACE v3 benchmark rows, this appears at:
 
-**Solution**: Flip weights to `relevance=0.55, strength=0.25` for CL-bench. Each context introduces novel knowledge, so query relevance is more meaningful than historical usage frequency.
+- `metrics.quality_gate`
 
-### Enhancement 4: Meta-Strategy Seed Bullets
+## 5. Deterministic Sampling and Manifest Semantics (V3)
 
-**Problem**: New contexts start with empty memory, providing no guidance on common failure modes.
+Implemented in `benchmark/sampling.py`.
 
-**Solution**: Pre-seed three procedural bullets when memory is initialized:
-1. "Re-read all constraints, rules, and procedures in the context" (targets Context Ignored 55.3%)
-2. "Follow the exact output format specified" (targets Format Error 35.3%)
-3. "Do not rely on pre-trained knowledge when context provides explicit rules" (targets Context Misused 61.5%)
+## 5.1 Manifest Purpose
 
-### Enhancement 5: Rubric-Informed Reflection
+Manifest guarantees baseline and ACE process the same ordered subset.
+This is required for fair comparison.
 
-**Problem**: The Reflector extracts generic lessons without knowing which specific requirements were missed.
+## 5.2 Manifest Schema
 
-**Solution**: After an evaluation pass produces per-rubric satisfaction status, feed it back to the Reflector. This enables focused bullets like "ensure all API parameters from the documentation are included" rather than vague "pay attention to details."
+Manifest fields:
 
-## 7. Error Analysis Methodology
+- `dataset`
+- `split`
+- `seed`
+- `max_samples`
+- `selected_count`
+- `created_at`
+- `task_ids` (ordered)
 
-### How Table 2 is Calculated
+## 5.3 Selection Logic
 
-Per the CL-bench paper (Section 5, Table 3):
+If manifest file exists:
 
-1. Each rubric covers a dimension: factual correctness, computational accuracy, judgment correctness, procedural correctness, content completeness, format compliance.
-2. When a task scores 0, the specific failed rubrics reveal the failure mode.
-3. A secondary LLM classification pass categorizes each failed rubric into an error type.
-4. Error types are NOT mutually exclusive. One task can have multiple types.
+- load manifest,
+- reconstruct subset by `task_ids` order.
 
-**Error Types**:
-- **Context Ignored**: Model did not reference information explicitly stated in context
-- **Context Misused**: Model incorrectly applied contextual knowledge
-- **Format Error**: Model violated explicit formatting instructions
-- **Refusal**: Model output is empty or model claims insufficient information
+If manifest does not exist:
 
-**Aggregation**:
-- Context Ignored (%) = tasks with at least one CONTEXT_IGNORED rubric / total tasks
-- Context Misused (%) = tasks with at least one CONTEXT_MISUSED rubric / total tasks
-- Format Error (%) = tasks with at least one FORMAT_ERROR rubric / total tasks
-- Refusal (%) = tasks classified as REFUSAL / total tasks
+- sample deterministic indices using `random.Random(seed).sample(...)`,
+- sort indices,
+- build subset in sorted-index order,
+- persist manifest when a path is provided.
 
-Row totals exceed 100% because a single task can exhibit multiple error types.
+## 6. Benchmark V3 Pipelines
+
+## 6.1 Baseline v3 (`benchmark/infer_baseline_v3.py`)
+
+Flow:
+
+1. Load dataset.
+2. Resolve subset with seed and optional manifest.
+3. Resume by existing output `task_id` set when not clearing results.
+4. Call OpenAI model per task.
+5. Write one row per task:
+   - `task_id`, `messages`, `model_output`, `rubrics`, `metadata`, `metrics`.
+
+## 6.2 ACE direct v3 (`benchmark/infer_ace_direct_v3.py`)
+
+Flow:
+
+1. Load deterministic subset through same sampling module.
+2. Group pending tasks by `context_id`.
+3. Retrieve context-scoped memory bullets.
+4. Inject guidance before the last user message.
+5. Call solver model.
+6. Reflect lessons with Gemini reflector.
+7. Apply quality gate.
+8. Apply accepted lessons to memory only when gate passes.
+9. Write row with quality-gate diagnostics and ACE delta summary.
+
+Row-level metrics include:
+
+- token and latency fields,
+- `reflector_tokens`,
+- `num_bullets_retrieved`,
+- `num_lessons_extracted`,
+- `num_lessons_accepted`,
+- `ace_delta`,
+- `quality_gate`.
+
+## 6.3 One-command v3 orchestration (`benchmark/run_v3.py`)
+
+Default command:
+
+```bash
+python -m benchmark.run_v3 \
+  --manifest benchmark/results/subset_manifest_v3_seed42_n200.json \
+  --max-samples 200 \
+  --seed 42
+```
+
+Default behavior:
+
+1. Clear v3 outputs (unless `--no-clear-results`).
+2. Clear Neo4j (unless `--no-clear-db`).
+3. Run baseline v3 and ACE v3 inference in parallel.
+4. Enforce completion check against requested sample count.
+5. If `--with-report` (default true), call `benchmark.complete_v3_pipeline --skip-wait`.
+
+`benchmark.complete_v3_pipeline.py` currently uses fixed `TARGET = 200`.
+For non-200 subset runs, use `--no-with-report` and run eval/error/compare manually.
+
+## 7. Runtime Parity With Benchmark Gate
+
+Runtime graph learning uses the same gate function and defaults:
+
+- `src/agent.py` calls `pipeline.process_execution(...)` in `ace_learning_node`.
+- `src/ace_components.py` `ACEPipeline.process_execution` calls `apply_quality_gate(...)` with `QualityGateConfig.from_env()`.
+
+This means online runtime updates and benchmark v3 updates share gate logic and thresholds by default.
+
+## 8. Comparison and Reporting Logic
+
+`benchmark.compare.py` computes:
+
+- Table 1 solving rates by category.
+- Table 2 error distributions.
+- Table 3 token, latency, and estimated cost.
+- Table 4 per-category token and latency.
+
+It also enforces baseline versus ACE task-id set equality before report generation.
+
+Detailed formulas are documented in:
+
+- `docs/COMPARISON_REPORT_V2_CALCULATION_DETAILS.md`
+
+## 9. Related Documentation
+
+- `docs/SETUP.md`: environment and end-to-end commands.
+- `docs/CL_BENCH_CALCULATION_DETAILS.md`: upstream CL-bench computation details.
+- `README.md`: operational quick start and artifact expectations.
