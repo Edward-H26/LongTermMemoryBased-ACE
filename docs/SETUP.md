@@ -212,6 +212,8 @@ TAVILY_API_KEY=tvly-...your-key-here
 | `OPENAI_API_KEY` | (none) | For benchmark | OpenAI API key from platform.openai.com |
 | `OPENAI_MODEL` | `gpt-5.1` | No | OpenAI model name for solver and benchmark |
 | `OPENAI_API_BASE` | (none) | No | Custom API base URL for OpenAI-compatible endpoints (HuggingFace, vLLM, etc.) |
+| `OPENAI_ADMIN_API_KEY` | (none) | For strict cost reconciliation | OpenAI admin key for organization usage and cost endpoints |
+| `OPENAI_COST_PROJECT_ID` | (none) | For strict cost reconciliation | OpenAI project id used to scope billed-cost queries |
 
 ### Neo4j Database
 
@@ -251,6 +253,40 @@ TAVILY_API_KEY=tvly-...your-key-here
 | `ACE_QG_LESSON_SCORE_MIN` | `0.60` | No | Minimum per-lesson quality score for lesson acceptance |
 | `ACE_QG_OVERLAP_MIN` | `0.10` | No | Minimum token-overlap score between question and lesson |
 | `ACE_QG_MAX_ACCEPTED_LESSONS` | `2` | No | Maximum accepted lessons per task after sorting by quality and overlap |
+
+### ACE V4 Memory and Process Scoring Defaults
+
+| Variable | Default | Required | Description |
+|---|---|---|---|
+| `ACE_MEMORY_SCOPE_MODE` | `hybrid` | No | Memory retrieval scope: `hybrid`, `local`, or `global` |
+| `ACE_GLOBAL_GATE_SCORE_MIN` | `0.80` | No | Minimum gate score required before writing accepted lessons into global memory |
+| `ACE_LOCAL_TOP_K` | `3` | No | Number of context-local bullets retrieved in v4 |
+| `ACE_GLOBAL_TOP_K` | `2` | No | Number of global bullets retrieved in v4 |
+| `ACE_CONTEXT_WORKERS` | `6` | No | Parallel worker count for context-level ACE v4 inference |
+| `ACE_STEP_SCORING_MODE` | `near_full` | No | Step scoring mode: `off`, `near_full`, or `full` |
+| `ACE_STEP_SCORER_MODEL` | `gpt-5.1` | No | LLM verifier model for intermediate step scoring |
+| `ACE_STEP_SCORE_WORKERS` | `8` | No | Worker count used for per-step verifier calls |
+| `ACE_STEP_SCORE_MIN` | `0.45` | No | ToT branch pruning threshold based on mean step score |
+| `ACE_MAX_COMPLETION_TOKENS` | `8192` | No | Default completion cap for v4 inference calls |
+| `ACE_EMPTY_OUTPUT_RETRY_MAX_TOKENS` | `16384` | No | Retry completion cap when first output is empty at token limit |
+
+### ACE V5 Reliability and Durability Defaults
+
+| Variable | Default | Required | Description |
+|---|---|---|---|
+| `ACE_NEO4J_RETRY_MAX` | `2` | No | Number of retries for Neo4j load/save after first attempt |
+| `ACE_NEO4J_RETRY_BACKOFF_SEC` | `1.0` | No | Exponential backoff base seconds for Neo4j retries |
+| `ACE_NEO4J_RECONNECT_ON_SESSION_EXPIRED` | `true` | No | Reset and reconnect Neo4j driver when `SessionExpired` is detected |
+| `ACE_V5_RESUME_FROM_PROGRESS` | `true` | No | Default for `infer_ace_direct_v5 --resume-from-progress` |
+| `ACE_V5_FINALIZE_ORDER` | `true` | No | Default for `infer_ace_direct_v5 --finalize-order` |
+| `ACE_V5_PROGRESS_PATH` | (unset) | No | Optional override for ACE v5 durable journal path |
+
+### Benchmark Cost Reporting Defaults
+
+| Variable | Default | Required | Description |
+|---|---|---|---|
+| `BENCHMARK_COST_MODE` | `dual_source` | No | Cost accounting mode for compare (`legacy` or `dual_source`) |
+| `BENCHMARK_BILLING_POLICY` | `strict` | No | Billing reconciliation policy (`strict` hard-fails or `off`) |
 
 ### Optional Search Tools
 
@@ -323,6 +359,17 @@ ACE_QG_GATE_SCORE_MIN=0.65
 ACE_QG_LESSON_SCORE_MIN=0.60
 ACE_QG_OVERLAP_MIN=0.10
 ACE_QG_MAX_ACCEPTED_LESSONS=2
+ACE_MEMORY_SCOPE_MODE=hybrid
+ACE_GLOBAL_GATE_SCORE_MIN=0.80
+ACE_LOCAL_TOP_K=3
+ACE_GLOBAL_TOP_K=2
+ACE_CONTEXT_WORKERS=6
+ACE_STEP_SCORING_MODE=near_full
+ACE_STEP_SCORER_MODEL=gpt-5.1
+ACE_STEP_SCORE_WORKERS=8
+ACE_STEP_SCORE_MIN=0.45
+ACE_MAX_COMPLETION_TOKENS=8192
+ACE_EMPTY_OUTPUT_RETRY_MAX_TOKENS=16384
 ```
 
 ### Profile: HuggingFace Inference Endpoint
@@ -345,6 +392,345 @@ NEO4J_PASSWORD=your-password
 
 ---
 
+## V5 End-to-End Benchmarking (Recommended)
+
+### Recommended one-command run
+
+Use `run_v5` for durable resume, context-parallel ACE inference, and side-retry post-pipeline execution.
+
+```bash
+python -m benchmark.run_v5 \
+  --manifest benchmark/results/v5/subset_manifest_v5_seed42_n200.json \
+  --max-samples 200 \
+  --seed 42 \
+  --sampling-strategy context_dense \
+  --memory-scope hybrid
+```
+
+Current defaults in `benchmark/run_v5.py`:
+
+- `--sampling-strategy`: `context_dense`
+- `--memory-scope`: `hybrid`
+- `--clear-results`: true
+- `--clear-db`: true
+- `--with-report`: true
+- `--preflight-mode`: `off`
+- `--smoke-samples`: `5` (allowed values: `3`, `4`, `5`)
+- `--smoke-output-dir`: `benchmark/results/v5/smoke_v5`
+- `--estimate-source`: `auto` (`v5`, `v4`, `v3`, `heuristic` supported). In `auto`, estimate source priority is `v4 -> v5 -> v3 -> heuristic`.
+- `--preflight-report`: `benchmark/results/v5/preflight_v5.json`
+- `--cost-mode`: `dual_source`
+- `--billing-policy`: `strict`
+- `--openai-admin-key-env`: `OPENAI_ADMIN_API_KEY`
+- `--openai-project-id-env`: `OPENAI_COST_PROJECT_ID`
+- `--sanitize-after-run`: false
+- `--sanitize-in-place`: false
+- `--sanitize-mode`: `warn`
+- `--sanitize-report`: `benchmark/results/v5/sanitize_report_v5.json`
+
+With defaults, `run_v5`:
+
+1. Clears existing v5 artifacts.
+2. Optionally clears Neo4j.
+3. Runs `infer_baseline_v5` and `infer_ace_direct_v5` in parallel.
+4. Uses ACE per-task durable progress journal for crash-safe resume.
+5. Writes `benchmark/results/v5/run_v5_meta.json` with phase timestamps.
+6. Runs `benchmark.complete_v5_pipeline`, which performs parallel eval, parallel error analysis, per-side retries, parity validation, full-pipeline metered cost reporting, and strict billed-cost reconciliation.
+7. Optionally runs `benchmark.sanitize_results` for post-run JSONL sanitization.
+
+Strict billing prerequisites for default v5 flow:
+
+1. `OPENAI_ADMIN_API_KEY` is set.
+2. `OPENAI_COST_PROJECT_ID` is set.
+3. `benchmark/results/v5/run_v5_meta.json` exists and contains usable start/end timestamps.
+
+### V5 dual preflight
+
+```bash
+python -m benchmark.run_v5 \
+  --preflight-mode static \
+  --manifest benchmark/results/v5/subset_manifest_v5_seed42_n200.json \
+  --max-samples 200 \
+  --seed 42 \
+  --sampling-strategy context_dense \
+  --memory-scope hybrid \
+  --preflight-report benchmark/results/v5/preflight_v5.json
+```
+
+```bash
+python -m benchmark.run_v5 \
+  --preflight-mode smoke \
+  --smoke-samples 5 \
+  --seed 42 \
+  --sampling-strategy context_dense \
+  --memory-scope hybrid \
+  --smoke-output-dir benchmark/results/v5/smoke_v5_seed42_n5 \
+  --preflight-report benchmark/results/v5/preflight_v5.json
+```
+
+```bash
+python -m benchmark.run_v5 \
+  --preflight-mode both \
+  --smoke-samples 5 \
+  --manifest benchmark/results/v5/subset_manifest_v5_seed42_n200.json \
+  --max-samples 200 \
+  --seed 42 \
+  --sampling-strategy context_dense \
+  --memory-scope hybrid \
+  --smoke-output-dir benchmark/results/v5/smoke_v5_seed42_n5 \
+  --preflight-report benchmark/results/v5/preflight_v5.json
+```
+
+`preflight_v5` estimate behavior:
+
+1. Step-scoring token and latency assumptions are derived from recent `ace_v*_metrics.json` artifacts when present.
+2. If empirical artifacts are missing, fallback constants are used and recorded in assumptions.
+3. Smoke scaling prefers full-pipeline measured cost from `comparison_report_v5.json.full_pipeline_cost_metered.combined_total_cost_usd`.
+
+### V5 manual sequence
+
+```bash
+python -m benchmark.infer_baseline_v5 \
+  --max-samples 200 \
+  --seed 42 \
+  --manifest benchmark/results/v5/subset_manifest_v5_seed42_n200.json \
+  --sampling-strategy context_dense \
+  --output benchmark/results/v5/baseline_v5.jsonl
+
+python -m benchmark.infer_ace_direct_v5 \
+  --max-samples 200 \
+  --seed 42 \
+  --manifest benchmark/results/v5/subset_manifest_v5_seed42_n200.json \
+  --sampling-strategy context_dense \
+  --memory-scope hybrid \
+  --progress-path benchmark/results/v5/ace_v5.jsonl.progress.jsonl \
+  --resume-from-progress \
+  --finalize-order \
+  --output benchmark/results/v5/ace_v5.jsonl
+
+python -m benchmark.complete_v5_pipeline \
+  --output-dir benchmark/results/v5 \
+  --max-samples 200 \
+  --judge-model gpt-5.1 \
+  --stage-retry-max 1 \
+  --cost-mode dual_source \
+  --billing-policy strict \
+  --run-meta benchmark/results/v5/run_v5_meta.json
+```
+
+### Sanitize existing JSONL in-place
+
+```bash
+python -m benchmark.sanitize_results \
+  --input-root benchmark/results \
+  --version all \
+  --in-place \
+  --report-path benchmark/results/sanitize_report_inplace.json \
+  --mode warn
+```
+
+### Enable post-run sanitization in `run_v5`
+
+```bash
+python -m benchmark.run_v5 \
+  --manifest benchmark/results/v5/subset_manifest_v5_seed42_n200.json \
+  --max-samples 200 \
+  --seed 42 \
+  --sampling-strategy context_dense \
+  --memory-scope hybrid \
+  --with-report \
+  --sanitize-after-run \
+  --sanitize-in-place \
+  --sanitize-mode warn \
+  --sanitize-report benchmark/results/v5/sanitize_report_v5.json
+```
+
+### Required v5 artifacts
+
+- `benchmark/results/v5/subset_manifest_v5_seed42_n200.json`
+- `benchmark/results/v5/baseline_v5.jsonl`
+- `benchmark/results/v5/ace_v5.jsonl`
+- `benchmark/results/v5/ace_v5_metrics.json`
+- `benchmark/results/v5/baseline_v5_graded.jsonl`
+- `benchmark/results/v5/ace_v5_graded.jsonl`
+- `benchmark/results/v5/baseline_v5_graded_eval_metrics.json`
+- `benchmark/results/v5/ace_v5_graded_eval_metrics.json`
+- `benchmark/results/v5/baseline_v5_graded_errors.jsonl`
+- `benchmark/results/v5/ace_v5_graded_errors.jsonl`
+- `benchmark/results/v5/baseline_v5_graded_errors_error_metrics.json`
+- `benchmark/results/v5/ace_v5_graded_errors_error_metrics.json`
+- `benchmark/results/v5/comparison_report_v5.md`
+- `benchmark/results/v5/comparison_report_v5.json`
+- `benchmark/results/v5/ace_v5.jsonl.progress.jsonl`
+- `benchmark/results/v5/ace_v5.jsonl.complete.json`
+- `benchmark/results/v5/run_v5_meta.json`
+- `benchmark/results/v5/preflight_v5.json` (when preflight is used)
+
+Publish only allowlisted artifacts to GitHub, keep raw JSONL and progress journals local.
+
+Backfill full-cost reports for existing runs:
+
+```bash
+python -m benchmark.backfill_cost_v5 --version v4
+python -m benchmark.backfill_cost_v5 --version v5
+```
+
+See `docs/RESULTS_STRUCTURE.md` for canonical artifact schema details.
+
+## V4 End-to-End Benchmarking (Reference)
+
+### Recommended one-command run
+
+Use `run_v4` when you want deterministic subset selection, parallel baseline and ACE inference, v4 memory-scope switching, and automatic post-inference evaluation/report generation.
+
+```bash
+python -m benchmark.run_v4 \
+  --manifest benchmark/results/v4/subset_manifest_v4_seed42_n200.json \
+  --max-samples 200 \
+  --seed 42 \
+  --memory-scope hybrid
+```
+
+Current defaults in `benchmark/run_v4.py`:
+
+- `--sampling-strategy`: `context_dense`
+- `--memory-scope`: `hybrid`
+- `--clear-results`: true
+- `--clear-db`: true
+- `--with-report`: true
+- `--preflight-mode`: `off`
+- `--smoke-samples`: `5` (allowed values: `3`, `4`, `5`)
+- `--smoke-output-dir`: `benchmark/results/v4/smoke_v4`
+- `--estimate-source`: `auto`
+- `--preflight-report`: `benchmark/results/v4/preflight_v4.json`
+
+With defaults, the command:
+
+1. Clears existing v4 artifacts.
+2. Clears Neo4j.
+3. Runs `infer_baseline_v4` and `infer_ace_direct_v4` in parallel.
+4. Verifies output line counts against `--max-samples`.
+5. Runs `benchmark.complete_v4_pipeline --output-dir ... --skip-wait --max-samples ...` for eval, error analysis, and comparison report generation.
+
+### Dual preflight mode (`static + estimate` and `mini smoke`)
+
+Use preflight when you want to validate setup and estimate budget before committing to a full 200-task run.
+
+#### Stage A: static checks + estimate (no benchmark API calls)
+
+```bash
+python -m benchmark.run_v4 \
+  --preflight-mode static \
+  --manifest benchmark/results/v4/subset_manifest_v4_seed42_n200.json \
+  --max-samples 200 \
+  --seed 42 \
+  --sampling-strategy context_dense \
+  --memory-scope hybrid \
+  --preflight-report benchmark/results/v4/preflight_v4.json
+```
+
+#### Stage B: mini live smoke (3 to 5 tasks, full post-pipeline)
+
+```bash
+python -m benchmark.run_v4 \
+  --preflight-mode smoke \
+  --smoke-samples 5 \
+  --seed 42 \
+  --sampling-strategy context_dense \
+  --memory-scope hybrid \
+  --smoke-output-dir benchmark/results/v4/smoke_v4_seed42_n5 \
+  --preflight-report benchmark/results/v4/preflight_v4.json
+```
+
+#### Run both stages in one command
+
+```bash
+python -m benchmark.run_v4 \
+  --preflight-mode both \
+  --smoke-samples 5 \
+  --manifest benchmark/results/v4/subset_manifest_v4_seed42_n200.json \
+  --max-samples 200 \
+  --seed 42 \
+  --sampling-strategy context_dense \
+  --memory-scope hybrid \
+  --smoke-output-dir benchmark/results/v4/smoke_v4_seed42_n5 \
+  --preflight-report benchmark/results/v4/preflight_v4.json
+```
+
+`preflight_v4.json` includes:
+
+- blocking issues and warnings
+- source-backed low/base/high cost and wall-time estimates
+- smoke measurements (runtime, inference cost) when smoke runs
+- scaled full-run projection from smoke (`target_samples / smoke_samples`)
+
+Smoke mode requires API connectivity and CL-bench dataset access (Hub online or existing local cache).
+
+If `status` is `failed`, fix `blocking_issues` before running the full benchmark.
+
+### Manual sequence (explicit control)
+
+```bash
+python -m benchmark.infer_baseline_v4 \
+  --max-samples 200 \
+  --seed 42 \
+  --manifest benchmark/results/v4/subset_manifest_v4_seed42_n200.json \
+  --sampling-strategy context_dense \
+  --max-completion-tokens 8192 \
+  --empty-output-retry-max-tokens 16384 \
+  --output benchmark/results/v4/baseline_v4.jsonl
+
+python -m benchmark.infer_ace_direct_v4 \
+  --max-samples 200 \
+  --seed 42 \
+  --manifest benchmark/results/v4/subset_manifest_v4_seed42_n200.json \
+  --sampling-strategy context_dense \
+  --memory-scope hybrid \
+  --local-top-k 3 \
+  --global-top-k 2 \
+  --context-workers 6 \
+  --step-scoring-mode near_full \
+  --step-scorer-model gpt-5.1 \
+  --step-score-workers 8 \
+  --step-score-min 0.45 \
+  --qg-gate-score-min 0.65 \
+  --qg-lesson-score-min 0.60 \
+  --qg-overlap-min 0.10 \
+  --qg-max-accepted-lessons 2 \
+  --max-completion-tokens 8192 \
+  --empty-output-retry-max-tokens 16384 \
+  --output benchmark/results/v4/ace_v4.jsonl
+
+python -m benchmark.complete_v4_pipeline \
+  --max-samples 200 \
+  --judge-model gpt-5.1
+```
+
+### Required v4 artifacts
+
+- `benchmark/results/v4/subset_manifest_v4_seed42_n200.json`
+- `benchmark/results/v4/baseline_v4.jsonl`
+- `benchmark/results/v4/ace_v4.jsonl`
+- `benchmark/results/v4/ace_v4_metrics.json`
+- `benchmark/results/v4/baseline_v4_graded.jsonl`
+- `benchmark/results/v4/ace_v4_graded.jsonl`
+- `benchmark/results/v4/baseline_v4_graded_errors.jsonl`
+- `benchmark/results/v4/ace_v4_graded_errors.jsonl`
+- `benchmark/results/v4/comparison_report_v4.md`
+- `benchmark/results/v4/comparison_report_v4.json`
+- `benchmark/results/v4/preflight_v4.json` (when preflight is used)
+
+### `.env` sync behavior for new V4 keys
+
+If your local `.env` was created before V5, append missing keys from `.env.example` and keep existing values unchanged.
+
+Example key check:
+
+```bash
+comm -13 <(rg '^[A-Z0-9_]+=.*' .env -o | sed 's/=.*//' | sort) \
+         <(rg '^[A-Z0-9_]+=.*' .env.example -o | sed 's/=.*//' | sort)
+```
+
 ## V3 End-to-End Benchmarking
 
 ### Recommended one-command run
@@ -353,7 +739,7 @@ Use `run_v3` when you want deterministic subset selection, parallel baseline and
 
 ```bash
 python -m benchmark.run_v3 \
-  --manifest benchmark/results/subset_manifest_v3_seed42_n200.json \
+  --manifest benchmark/results/v3/subset_manifest_v3_seed42_n200.json \
   --max-samples 200 \
   --seed 42
 ```
@@ -387,43 +773,43 @@ Then run the eval, error analysis, and compare commands manually.
 python -m benchmark.infer_baseline_v3 \
   --max-samples 200 \
   --seed 42 \
-  --manifest benchmark/results/subset_manifest_v3_seed42_n200.json \
-  --output benchmark/results/baseline_v3.jsonl
+  --manifest benchmark/results/v3/subset_manifest_v3_seed42_n200.json \
+  --output benchmark/results/v3/baseline_v3.jsonl
 
 python -m benchmark.infer_ace_direct_v3 \
   --max-samples 200 \
   --seed 42 \
-  --manifest benchmark/results/subset_manifest_v3_seed42_n200.json \
+  --manifest benchmark/results/v3/subset_manifest_v3_seed42_n200.json \
   --qg-gate-score-min 0.65 \
   --qg-lesson-score-min 0.60 \
   --qg-overlap-min 0.10 \
   --qg-max-accepted-lessons 2 \
-  --output benchmark/results/ace_v3.jsonl
+  --output benchmark/results/v3/ace_v3.jsonl
 
 python -m benchmark.eval \
-  --input benchmark/results/baseline_v3.jsonl \
-  --output benchmark/results/baseline_v3_graded.jsonl \
+  --input benchmark/results/v3/baseline_v3.jsonl \
+  --output benchmark/results/v3/baseline_v3_graded.jsonl \
   --judge-model gpt-5.1
 
 python -m benchmark.eval \
-  --input benchmark/results/ace_v3.jsonl \
-  --output benchmark/results/ace_v3_graded.jsonl \
+  --input benchmark/results/v3/ace_v3.jsonl \
+  --output benchmark/results/v3/ace_v3_graded.jsonl \
   --judge-model gpt-5.1
 
 python -m benchmark.error_analysis \
-  --input benchmark/results/baseline_v3_graded.jsonl \
-  --output benchmark/results/baseline_v3_graded_errors.jsonl
+  --input benchmark/results/v3/baseline_v3_graded.jsonl \
+  --output benchmark/results/v3/baseline_v3_graded_errors.jsonl
 
 python -m benchmark.error_analysis \
-  --input benchmark/results/ace_v3_graded.jsonl \
-  --output benchmark/results/ace_v3_graded_errors.jsonl
+  --input benchmark/results/v3/ace_v3_graded.jsonl \
+  --output benchmark/results/v3/ace_v3_graded_errors.jsonl
 
 python -m benchmark.compare \
-  --baseline benchmark/results/baseline_v3_graded.jsonl \
-  --ace benchmark/results/ace_v3_graded.jsonl \
-  --baseline-errors benchmark/results/baseline_v3_graded_errors.jsonl \
-  --ace-errors benchmark/results/ace_v3_graded_errors.jsonl \
-  --output benchmark/results/comparison_report_v3.md \
+  --baseline benchmark/results/v3/baseline_v3_graded.jsonl \
+  --ace benchmark/results/v3/ace_v3_graded.jsonl \
+  --baseline-errors benchmark/results/v3/baseline_v3_graded_errors.jsonl \
+  --ace-errors benchmark/results/v3/ace_v3_graded_errors.jsonl \
+  --output benchmark/results/v3/comparison_report_v3.md \
   --title-label V3
 ```
 
@@ -452,6 +838,9 @@ The benchmark scripts (`run_v3.py`, `infer_baseline_v3.py`, `infer_ace_direct_v3
 
 **`run_v3` fails on non-200 subset with report enabled:**
 `complete_v3_pipeline.py` currently checks for 200 lines. Use `--no-with-report` for non-200 runs, then run post-steps manually.
+
+**`run_v4` reports empty model outputs on difficult tasks:**
+V4 automatically retries when the first response is empty and completion hit token cap. You can further increase `ACE_MAX_COMPLETION_TOKENS` and `ACE_EMPTY_OUTPUT_RETRY_MAX_TOKENS`, or pass `--max-completion-tokens` and `--empty-output-retry-max-tokens` directly.
 
 **Google Search returns "GOOGLE_CSE_ID not configured":**
 This is expected if you have not set up a Programmable Search Engine. The `google_search` tool is optional. The agent will still work with CoT and ToT modes.

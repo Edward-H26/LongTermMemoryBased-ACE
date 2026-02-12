@@ -2,7 +2,7 @@
 
 ## 1. Scope
 
-This document explains how `/benchmark/results/comparison_report_v2.md` and `/benchmark/results/comparison_report_v2.json` are computed by:
+This document explains how `/benchmark/results/v2/comparison_report_v2.md` and `/benchmark/results/v2/comparison_report_v2.json` are computed by:
 
 - `/benchmark/compare.py`
 
@@ -13,23 +13,23 @@ It covers all four report tables, formulas, denominators, rounding, and integrit
 ## 2.1 Required Inputs
 
 - Baseline graded JSONL:
-  - `/benchmark/results/baseline_v2_graded.jsonl`
+  - `/benchmark/results/v2/baseline_v2_graded.jsonl`
 - ACE graded JSONL:
-  - `/benchmark/results/ace_v2_graded.jsonl`
+  - `/benchmark/results/v2/ace_v2_graded.jsonl`
 
 ## 2.2 Optional but Normally Used Inputs
 
 - Baseline error classifications:
-  - `/benchmark/results/baseline_v2_graded_errors.jsonl`
+  - `/benchmark/results/v2/baseline_v2_graded_errors.jsonl`
 - ACE error classifications:
-  - `/benchmark/results/ace_v2_graded_errors.jsonl`
+  - `/benchmark/results/v2/ace_v2_graded_errors.jsonl`
 
 ## 2.3 Outputs
 
 - Markdown report:
-  - `/benchmark/results/comparison_report_v2.md`
+  - `/benchmark/results/v2/comparison_report_v2.md`
 - JSON summary:
-  - `/benchmark/results/comparison_report_v2.json`
+  - `/benchmark/results/v2/comparison_report_v2.json`
 
 ## 3. Integrity Constraints Before Metric Calculation
 
@@ -195,7 +195,7 @@ References:
 
 ## 9. Worked Examples from Current V2 Artifacts
 
-Using `/benchmark/results/comparison_report_v2.json`:
+Using `/benchmark/results/v2/comparison_report_v2.json`:
 
 ## 9.1 Baseline Overall Solve Rate
 
@@ -237,10 +237,10 @@ cost = (3,371,008 / 1,000,000) * 1.25
 
 ```bash
 python -m benchmark.compare \
-  --baseline benchmark/results/baseline_v2_graded.jsonl \
-  --ace benchmark/results/ace_v2_graded.jsonl \
-  --baseline-errors benchmark/results/baseline_v2_graded_errors.jsonl \
-  --ace-errors benchmark/results/ace_v2_graded_errors.jsonl \
-  --output benchmark/results/comparison_report_v2.md \
+  --baseline benchmark/results/v2/baseline_v2_graded.jsonl \
+  --ace benchmark/results/v2/ace_v2_graded.jsonl \
+  --baseline-errors benchmark/results/v2/baseline_v2_graded_errors.jsonl \
+  --ace-errors benchmark/results/v2/ace_v2_graded_errors.jsonl \
+  --output benchmark/results/v2/comparison_report_v2.md \
   --title-label V2
 ```

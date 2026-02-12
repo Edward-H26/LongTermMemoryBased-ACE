@@ -5,14 +5,13 @@ Provides: GraphState, ConversationMemory, solve_cot, solve_tot, solve_react,
 _extract_final, _finalize_answer
 """
 
-from typing import Any, Dict, List, Literal, Optional, Tuple, TypedDict
+from typing import Any, Dict, List, Literal, Optional, TypedDict
 import re
 import json
 import time
 import os
 from datetime import datetime
 from pathlib import Path
-from collections import Counter
 
 from src.llm import LLM
 from src.tools import (
@@ -22,6 +21,7 @@ from src.tools import (
     _deep_research_run, _deep_research_schema,
 )
 from src.prompts.reasoning_prompts import COT_PROMPT, TOT_EXPAND_TEMPLATE, TOT_VALUE_TEMPLATE, REACT_SYSTEM
+from src.step_scoring import StepScoringConfig, score_reasoning_candidates, score_reasoning_text
 
 
 class GraphState(TypedDict):
@@ -101,13 +101,24 @@ def solve_cot(state: GraphState) -> Dict[str, Any]:
     params = state["scratch"]
     k = int(params.get("k", 1))
     temp = float(params.get("temperature", 0.2 if k == 1 else 0.7))
+    step_config = StepScoringConfig.from_state(params)
     llm = LLM(temperature=temp)
     base_msgs = [{"role": "system", "content": COT_PROMPT}] + state["messages"]
+    user = next((m["content"] for m in state["messages"] if m["role"] == "user"), "")
     if k == 1:
         resp = llm.chat(base_msgs)
         text = resp["choices"][0]["message"]["content"]
         cleaned = re.sub(r"<scratchpad>.*?</scratchpad>", "", text, flags=re.DOTALL)
-        return {"answer": _finalize_answer(cleaned), "raw": text}
+        step_summary = score_reasoning_text(
+            question = user,
+            reasoning_text = text,
+            config = step_config,
+        )
+        return {
+            "answer": _finalize_answer(cleaned),
+            "raw": text,
+            "step_scoring": step_summary,
+        }
     answers: List[str] = []
     raws: List[str] = []
     for _ in range(k):
@@ -117,13 +128,25 @@ def solve_cot(state: GraphState) -> Dict[str, Any]:
         raws.append(text)
         answers.append(_finalize_answer(cleaned))
 
-    def norm(s: str) -> str:
-        return re.sub(r"\s+", " ", s.strip().lower())
+    sample_scores = score_reasoning_candidates(
+        question = user,
+        candidate_texts = raws,
+        config = step_config,
+    )
+    best_idx = 0
+    best_score = -1.0
+    for idx, summary in enumerate(sample_scores):
+        score = float(summary.get("mean_step_score", 0.0))
+        if score > best_score:
+            best_score = score
+            best_idx = idx
 
-    tally = Counter(norm(a) for a in answers)
-    best_norm, _ = tally.most_common(1)[0]
-    chosen = next(a for a in answers if norm(a) == best_norm)
-    return {"answer": chosen, "raw_samples": raws}
+    return {
+        "answer": answers[best_idx],
+        "raw_samples": raws,
+        "sample_step_scoring": sample_scores,
+        "selected_sample_index": best_idx,
+    }
 
 
 def solve_tot(state: GraphState) -> Dict[str, Any]:
@@ -131,12 +154,21 @@ def solve_tot(state: GraphState) -> Dict[str, Any]:
     breadth = int(params.get("breadth", 3))
     depth = int(params.get("depth", 2))
     temp = float(params.get("temperature", 0.2))
+    step_config = StepScoringConfig.from_state(params)
     llm = LLM(temperature=temp)
     user = next((m["content"] for m in state["messages"] if m["role"] == "user"), "")
-    beam: List[Tuple[str, float]] = [("", 0.0)]
+    beam: List[Dict[str, Any]] = [{
+        "pad": "",
+        "value_score": 0.0,
+        "normalized_value_score": 0.0,
+        "step_mean": 0.0,
+        "combined_rank": 0.0,
+    }]
+    depth_diagnostics: List[Dict[str, Any]] = []
     for d in range(depth):
-        candidates: List[Tuple[str, float]] = []
-        for scratchpad, _ in beam:
+        candidates: List[Dict[str, Any]] = []
+        for beam_item in beam:
+            scratchpad = str(beam_item.get("pad", ""))
             sys = "You are exploring solution trees. Expand concise next-steps. Do not jump to the final answer yet."
             expand_prompt = TOT_EXPAND_TEMPLATE.format(k=breadth)
             msgs = [
@@ -174,10 +206,60 @@ def solve_tot(state: GraphState) -> Dict[str, Any]:
                     score = float(re.findall(r"-?\d+(?:\.\d+)?", score_text)[0])
                 except Exception:
                     score = 5.0
-                candidates.append((new_pad, score))
-        candidates.sort(key=lambda x: x[1], reverse=True)
-        beam = candidates[:breadth] if candidates else beam
-    best_pad = beam[0][0]
+                candidates.append({
+                    "pad": new_pad,
+                    "value_score": score,
+                })
+
+        if not candidates:
+            continue
+
+        raw_values = [float(c.get("value_score", 0.0)) for c in candidates]
+        min_value = min(raw_values)
+        max_value = max(raw_values)
+        if max_value > min_value:
+            normalized_values = [
+                (value - min_value) / (max_value - min_value)
+                for value in raw_values
+            ]
+        else:
+            normalized_values = [0.5 for _ in raw_values]
+
+        step_summaries = score_reasoning_candidates(
+            question = user,
+            candidate_texts = [str(c.get("pad", "")) for c in candidates],
+            config = step_config,
+        )
+
+        enriched: List[Dict[str, Any]] = []
+        for idx, candidate in enumerate(candidates):
+            step_summary = step_summaries[idx] if idx < len(step_summaries) else {}
+            step_mean = float(step_summary.get("mean_step_score", 0.0))
+            normalized_value_score = normalized_values[idx]
+            combined_rank = 0.6 * normalized_value_score + 0.4 * step_mean
+            enriched.append({
+                "pad": candidate.get("pad", ""),
+                "value_score": float(candidate.get("value_score", 0.0)),
+                "normalized_value_score": normalized_value_score,
+                "step_mean": step_mean,
+                "combined_rank": combined_rank,
+                "step_scoring": step_summary,
+            })
+
+        eligible = [row for row in enriched if row.get("step_mean", 0.0) >= step_config.min_score]
+        if not eligible:
+            eligible = enriched
+
+        eligible.sort(key = lambda row: row.get("combined_rank", 0.0), reverse = True)
+        beam = eligible[:breadth]
+        depth_diagnostics.append({
+            "depth": d + 1,
+            "num_candidates": len(candidates),
+            "num_eligible_after_prune": len(eligible),
+            "top_combined_rank": beam[0].get("combined_rank", 0.0) if beam else 0.0,
+        })
+
+    best_pad = str(beam[0].get("pad", "")) if beam else ""
     final_msgs = [
         {"role": "system", "content": COT_PROMPT},
         {"role": "user", "content": user},
@@ -186,18 +268,31 @@ def solve_tot(state: GraphState) -> Dict[str, Any]:
     fin = llm.chat(final_msgs, temperature=0.0)
     text = fin["choices"][0]["message"]["content"]
     text = re.sub(r"<scratchpad>.*?</scratchpad>", "", text, flags=re.DOTALL)
-    return {"answer": _finalize_answer(text), "scratchpad": best_pad}
+    final_step_summary = score_reasoning_text(
+        question = user,
+        reasoning_text = text,
+        config = step_config,
+    )
+    return {
+        "answer": _finalize_answer(text),
+        "scratchpad": best_pad,
+        "tot_scoring": depth_diagnostics,
+        "step_scoring": final_step_summary,
+    }
 
 
 def solve_react(state: GraphState) -> Dict[str, Any]:
     params = state["scratch"]
     max_turns = int(params.get("max_turns", 8))
     temp = float(params.get("temperature", 0.2))
+    step_config = StepScoringConfig.from_state(params)
     tool_schemas = [_calculator_schema(), _google_search_schema(), _neo4j_retrieveqa_schema()]
     llm = LLM(temperature=temp)
     messages = [{"role": "system", "content": REACT_SYSTEM}] + state["messages"]
+    user = next((m["content"] for m in state["messages"] if m["role"] == "user"), "")
 
     content = ""
+    step_scores: List[Dict[str, Any]] = []
     for turn in range(max_turns):
         max_tokens = 1200 if turn > 0 else 800
         resp = llm.chat(messages, tools=tool_schemas, tool_choice="auto", max_tokens=max_tokens)
@@ -205,11 +300,23 @@ def solve_react(state: GraphState) -> Dict[str, Any]:
         content = choice.get("content") or ""
         tool_calls = choice.get("tool_calls") or []
 
+        if content.strip():
+            assistant_summary = score_reasoning_text(
+                question = user,
+                reasoning_text = content,
+                config = step_config,
+            )
+            step_scores.append({
+                "turn": turn + 1,
+                "kind": "assistant",
+                "summary": assistant_summary,
+            })
+
         if content:
             final = _extract_final(content)
             if final:
                 messages.append({"role": "assistant", "content": content})
-                return {"answer": final, "trace": messages}
+                return {"answer": final, "trace": messages, "step_scores": step_scores}
 
         assistant_msg = {"role": "assistant", "content": content}
         if tool_calls:
@@ -236,6 +343,18 @@ def solve_react(state: GraphState) -> Dict[str, Any]:
                 else:
                     out = f"Unknown tool: {name}"
 
+                tool_summary = score_reasoning_text(
+                    question = user,
+                    reasoning_text = f"Tool {name} output: {str(out)[:1200]}",
+                    config = step_config,
+                )
+                step_scores.append({
+                    "turn": turn + 1,
+                    "kind": "tool",
+                    "tool_name": name,
+                    "summary": tool_summary,
+                })
+
                 messages.append({
                     "role": "tool",
                     "name": name,
@@ -249,4 +368,8 @@ def solve_react(state: GraphState) -> Dict[str, Any]:
                     "content": "Based on the tool results above, please provide your final answer wrapped in <final></final> tags.",
                 })
 
-    return {"answer": _finalize_answer(content) if content else "(no final)", "trace": messages}
+    return {
+        "answer": _finalize_answer(content) if content else "(no final)",
+        "trace": messages,
+        "step_scores": step_scores,
+    }

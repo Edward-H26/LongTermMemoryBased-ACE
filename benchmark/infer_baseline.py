@@ -5,7 +5,7 @@ Downloads the tencent/CL-bench dataset from HuggingFace and sends
 each task's messages directly to GPT-5.1 via OpenAI API.
 
 Usage:
-    python -m benchmark.infer_baseline --max-samples 500 --output benchmark/results/baseline.jsonl
+    python -m benchmark.infer_baseline --max-samples 500 --output benchmark/results/v1/baseline.jsonl
 """
 
 import json
@@ -82,7 +82,7 @@ def call_api(client, messages, model, max_retries=3):
 def main():
     parser = argparse.ArgumentParser(description="CL-bench Baseline Inference")
     parser.add_argument("--model", type=str, default="gpt-5.1", help="Model name")
-    parser.add_argument("--output", type=str, default="benchmark/results/baseline.jsonl")
+    parser.add_argument("--output", type=str, default="benchmark/results/v1/baseline.jsonl")
     parser.add_argument("--max-samples", type=int, default=None)
     parser.add_argument("--api-key", type=str, default=None)
     parser.add_argument("--base-url", type=str, default=None)

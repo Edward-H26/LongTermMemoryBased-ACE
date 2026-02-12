@@ -1,0 +1,200 @@
+{
+  "generated_at": "2026-02-12T15:45:31.304745+00:00",
+  "preflight_mode": "static",
+  "status": "failed",
+  "blocking_issues": [
+    "Strict dual-source billing reconciliation requires env keys: OPENAI_ADMIN_API_KEY, OPENAI_COST_PROJECT_ID"
+  ],
+  "warnings": [
+    "Tracked JSONL artifacts detected in benchmark/results; these are not safe to publish."
+  ],
+  "config": {
+    "manifest": "benchmark/results/v5/subset_manifest_v5_seed42_n5.json",
+    "max_samples": 5,
+    "seed": 42,
+    "sampling_strategy": "context_dense",
+    "memory_scope": "hybrid",
+    "progress_path": "benchmark/results/v5/ace_v5.jsonl.progress.jsonl",
+    "smoke_samples": 5,
+    "smoke_output_dir": "benchmark/results/v5/smoke_v5",
+    "estimate_source": "auto",
+    "context_workers": 6,
+    "step_scoring_mode": "near_full",
+    "step_score_workers": 8
+  },
+  "static_checks": {
+    "checks": [
+      {
+        "name": "max_samples",
+        "ok": true,
+        "detail": "max_samples=5"
+      },
+      {
+        "name": "smoke_samples",
+        "ok": true,
+        "detail": "smoke_samples=5"
+      },
+      {
+        "name": "sampling_strategy",
+        "ok": true,
+        "detail": "context_dense"
+      },
+      {
+        "name": "memory_scope",
+        "ok": true,
+        "detail": "hybrid"
+      },
+      {
+        "name": "required_env",
+        "ok": true,
+        "detail": "all present"
+      },
+      {
+        "name": "strict_billing_env",
+        "ok": false,
+        "detail": "missing=['OPENAI_ADMIN_API_KEY', 'OPENAI_COST_PROJECT_ID']"
+      },
+      {
+        "name": "benchmark_modules",
+        "ok": true,
+        "detail": "all importable"
+      },
+      {
+        "name": "runtime_packages",
+        "ok": true,
+        "detail": "all importable"
+      },
+      {
+        "name": "manifest_path",
+        "ok": true,
+        "detail": "manifest will be created"
+      },
+      {
+        "name": "output_dir",
+        "ok": true,
+        "detail": "output_dir=benchmark/results/v5"
+      },
+      {
+        "name": "progress_path",
+        "ok": true,
+        "detail": "progress_path=benchmark/results/v5/ace_v5.jsonl.progress.jsonl"
+      },
+      {
+        "name": "connectivity_probes",
+        "ok": true,
+        "detail": "optional probes skipped in static mode"
+      },
+      {
+        "name": "unsanitized_jsonl_scan",
+        "ok": true,
+        "detail": "no unsanitized JSONL detected"
+      },
+      {
+        "name": "tracked_jsonl_policy",
+        "ok": false,
+        "detail": [
+          "benchmark/results/v1/ace.jsonl",
+          "benchmark/results/v1/ace_graded.jsonl",
+          "benchmark/results/v1/ace_graded_errors.jsonl",
+          "benchmark/results/v1/baseline.jsonl",
+          "benchmark/results/v1/baseline_graded.jsonl",
+          "benchmark/results/v1/baseline_graded_errors.jsonl",
+          "benchmark/results/v2/ace_v2.jsonl",
+          "benchmark/results/v2/ace_v2_graded.jsonl",
+          "benchmark/results/v2/ace_v2_graded_errors.jsonl",
+          "benchmark/results/v2/baseline_v2.jsonl"
+        ]
+      }
+    ],
+    "blocking_issues": [
+      "Strict dual-source billing reconciliation requires env keys: OPENAI_ADMIN_API_KEY, OPENAI_COST_PROJECT_ID"
+    ],
+    "warnings": [
+      "Tracked JSONL artifacts detected in benchmark/results; these are not safe to publish."
+    ],
+    "status": "failed"
+  },
+  "estimate": {
+    "source": {
+      "selected": "v4",
+      "path": "benchmark/results/v4/comparison_report_v4.json"
+    },
+    "target_samples": 5,
+    "phases": {
+      "inference": {
+        "cost_usd": 0.343216125,
+        "wall_seconds": 199.08352248756563,
+        "baseline_prompt_tokens": 43795.5,
+        "baseline_completion_tokens": 11522.775,
+        "ace_prompt_tokens": 44580.4,
+        "ace_completion_tokens": 11751.849999999999
+      },
+      "step_scoring_overhead": {
+        "cost_usd": 0.4422960657734471,
+        "wall_seconds": 4.1442600029853915,
+        "mode": "near_full",
+        "total_llm_step_calls": 72.0,
+        "non_empty_rate": 0.8,
+        "mean_steps": 18.0,
+        "llm_steps_per_non_empty": 18.0,
+        "prompt_tokens_per_call": 4232.666260657735,
+        "completion_tokens_per_call": 85.21680876979293,
+        "seconds_per_call": 2.762840001990261
+      },
+      "evaluation": {
+        "cost_usd": 0.0625,
+        "wall_seconds": 105.0
+      },
+      "error_analysis": {
+        "cost_usd": 0.029835,
+        "wall_seconds": 27.825,
+        "baseline_failed_est": 3.975,
+        "ace_failed_est": 3.825
+      },
+      "compare": {
+        "cost_usd": 0.0,
+        "wall_seconds": 8.0
+      }
+    },
+    "totals": {
+      "base": {
+        "cost_usd": 0.8778471907734471,
+        "wall_seconds": 344.052782490551
+      },
+      "low": {
+        "cost_usd": 0.7022777526187577,
+        "wall_seconds": 275.2422259924408
+      },
+      "high": {
+        "cost_usd": 1.1850937075441537,
+        "wall_seconds": 481.67389548677136
+      }
+    },
+    "assumptions": [
+      "Estimates scaled by ratio=0.0250 from source tasks to target tasks.",
+      "Eval stage assumes 21.0s per task per side in parallel.",
+      "Error stage assumes 7.0s per failed task per side in parallel.",
+      "Step scoring token and latency assumptions use empirical auxiliary-call profile from ['benchmark/results/v4/ace_v4_metrics.json'].",
+      "Step scoring assumes 2.76s latency per verifier call with 8 step workers.",
+      "Context parallelism factor for step overhead capped at 6.0.",
+      "Step scoring inputs used fallback defaults due missing local artifacts."
+    ],
+    "step_inputs": {
+      "mean_steps": 18.0,
+      "non_empty_rate": 0.8,
+      "source_paths": [],
+      "fallback_used": true
+    },
+    "step_profile": {
+      "prompt_tokens_per_call": 4232.666260657735,
+      "completion_tokens_per_call": 85.21680876979293,
+      "seconds_per_call": 2.762840001990261,
+      "source_paths": [
+        "benchmark/results/v4/ace_v4_metrics.json"
+      ],
+      "fallback_used": false,
+      "source_total_calls": 4105.0
+    }
+  },
+  "smoke": {}
+}

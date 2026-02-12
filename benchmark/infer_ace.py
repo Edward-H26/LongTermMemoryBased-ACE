@@ -5,7 +5,7 @@ Groups tasks by context_id and processes sequentially within each context
 to enable intra-context learning (Enhancement 1).
 
 Usage:
-    python -m benchmark.infer_ace --max-samples 500 --output benchmark/results/ace.jsonl
+    python -m benchmark.infer_ace --max-samples 500 --output benchmark/results/v1/ace.jsonl
 """
 
 import json
@@ -74,7 +74,7 @@ def get_context_id(item):
 
 def main():
     parser = argparse.ArgumentParser(description="CL-bench ACE Inference")
-    parser.add_argument("--output", type=str, default="benchmark/results/ace.jsonl")
+    parser.add_argument("--output", type=str, default="benchmark/results/v1/ace.jsonl")
     parser.add_argument("--max-samples", type=int, default=None)
     parser.add_argument("--model", type=str, default=None, help="Solver model (default: OPENAI_MODEL env)")
     args = parser.parse_args()

@@ -1,0 +1,248 @@
+{
+  "generated_at": "2026-02-11T18:28:46.528939+00:00",
+  "preflight_mode": "both",
+  "status": "ok",
+  "blocking_issues": [],
+  "warnings": [],
+  "config": {
+    "manifest": "benchmark/results/subset_manifest_v4_seed42_n200.json",
+    "max_samples": 200,
+    "seed": 42,
+    "sampling_strategy": "context_dense",
+    "memory_scope": "hybrid",
+    "smoke_samples": 5,
+    "smoke_output_dir": "benchmark/results/smoke_v4_seed42_n5",
+    "estimate_source": "auto",
+    "context_workers": 6,
+    "step_scoring_mode": "near_full",
+    "step_score_workers": 8
+  },
+  "static_checks": {
+    "checks": [
+      {
+        "name": "max_samples",
+        "ok": true,
+        "detail": "max_samples=200"
+      },
+      {
+        "name": "smoke_samples",
+        "ok": true,
+        "detail": "smoke_samples=5"
+      },
+      {
+        "name": "sampling_strategy",
+        "ok": true,
+        "detail": "context_dense"
+      },
+      {
+        "name": "memory_scope",
+        "ok": true,
+        "detail": "hybrid"
+      },
+      {
+        "name": "required_env",
+        "ok": true,
+        "detail": "all present"
+      },
+      {
+        "name": "benchmark_modules",
+        "ok": true,
+        "detail": "all importable"
+      },
+      {
+        "name": "runtime_packages",
+        "ok": true,
+        "detail": "all importable"
+      },
+      {
+        "name": "manifest_path",
+        "ok": true,
+        "detail": "manifest will be created"
+      },
+      {
+        "name": "output_dir",
+        "ok": true,
+        "detail": "output_dir=benchmark/results"
+      },
+      {
+        "name": "connectivity_probes",
+        "ok": true,
+        "detail": "optional probes skipped in static mode"
+      }
+    ],
+    "blocking_issues": [],
+    "warnings": [],
+    "status": "ok"
+  },
+  "estimate": {
+    "source": {
+      "selected": "v3",
+      "path": "benchmark/results/comparison_report_v3.json"
+    },
+    "target_samples": 200,
+    "phases": {
+      "inference": {
+        "cost_usd": 13.231563750000001,
+        "wall_seconds": 4896.22073828592,
+        "baseline_prompt_tokens": 2001663.0,
+        "baseline_completion_tokens": 418535.99999999994,
+        "ace_prompt_tokens": 2028164.0,
+        "ace_completion_tokens": 400892.0
+      },
+      "step_scoring_overhead": {
+        "cost_usd": 2.5758,
+        "wall_seconds": 143.1,
+        "mode": "near_full",
+        "total_llm_step_calls": 3816.0,
+        "non_empty_rate": 0.795,
+        "mean_steps": 30.138364779874212,
+        "llm_steps_per_non_empty": 24.0
+      },
+      "evaluation": {
+        "cost_usd": 2.5,
+        "wall_seconds": 4200.0
+      },
+      "error_analysis": {
+        "cost_usd": 1.3157999999999999,
+        "wall_seconds": 1232.0,
+        "baseline_failed_est": 176.0,
+        "ace_failed_est": 168.0
+      },
+      "compare": {
+        "cost_usd": 0.0,
+        "wall_seconds": 8.0
+      }
+    },
+    "totals": {
+      "base": {
+        "cost_usd": 19.62316375,
+        "wall_seconds": 10479.32073828592
+      },
+      "low": {
+        "cost_usd": 15.698531000000001,
+        "wall_seconds": 8383.456590628737
+      },
+      "high": {
+        "cost_usd": 26.4912710625,
+        "wall_seconds": 14671.049033600288
+      }
+    },
+    "assumptions": [
+      "Estimates scaled by ratio=1.0000 from source tasks to target tasks.",
+      "Eval stage assumes 21.0s per task per side in parallel.",
+      "Error stage assumes 7.0s per failed task per side in parallel.",
+      "Step scoring assumes prompt=220 and completion=40 tokens per scored step.",
+      "Step scoring assumes 1.8s latency per verifier call with 8 step workers.",
+      "Context parallelism factor for step overhead capped at 6.0."
+    ],
+    "step_inputs": {
+      "mean_steps": 30.138364779874212,
+      "non_empty_rate": 0.795,
+      "source_paths": [
+        "benchmark/results/ace_v3.jsonl",
+        "benchmark/results/ace_v3_graded.jsonl"
+      ],
+      "fallback_used": false,
+      "sample_size": 200
+    }
+  },
+  "smoke": {
+    "status": "ok",
+    "paths": {
+      "output_dir": "benchmark/results/smoke_v4_seed42_n5",
+      "manifest": "benchmark/results/smoke_v4_seed42_n5/subset_manifest_v4_seed42_n5.json",
+      "baseline": "benchmark/results/smoke_v4_seed42_n5/baseline_v4.jsonl",
+      "ace": "benchmark/results/smoke_v4_seed42_n5/ace_v4.jsonl",
+      "comparison_report_json": "benchmark/results/smoke_v4_seed42_n5/comparison_report_v4.json"
+    },
+    "line_counts": {
+      "baseline": 5,
+      "ace": 5,
+      "target": 5
+    },
+    "measured": {
+      "inference_cost_usd": 0.2857275,
+      "inference_total_tokens": 111024.0,
+      "inference_wall_seconds": 166.91699333302677,
+      "post_wall_seconds": 135.11502212495543,
+      "total_wall_seconds": 302.0320154579822
+    },
+    "scaled_full_run": {
+      "ratio": 40.0,
+      "inference_cost_usd": 11.429100000000002,
+      "total_wall_seconds": 12081.280618319288
+    },
+    "estimated_smoke": {
+      "source": {
+        "selected": "v4",
+        "path": "benchmark/results/smoke_v4_seed42_n5/comparison_report_v4.json"
+      },
+      "target_samples": 5,
+      "phases": {
+        "inference": {
+          "cost_usd": 0.2857275,
+          "wall_seconds": 146.87407879414968,
+          "baseline_prompt_tokens": 46785.0,
+          "baseline_completion_tokens": 8353.0,
+          "ace_prompt_tokens": 47445.0,
+          "ace_completion_tokens": 8441.0
+        },
+        "step_scoring_overhead": {
+          "cost_usd": 0.08099999999999999,
+          "wall_seconds": 4.5,
+          "mode": "near_full",
+          "total_llm_step_calls": 120.0,
+          "non_empty_rate": 1.0,
+          "mean_steps": 28.2,
+          "llm_steps_per_non_empty": 24.0
+        },
+        "evaluation": {
+          "cost_usd": 0.0625,
+          "wall_seconds": 105.0
+        },
+        "error_analysis": {
+          "cost_usd": 0.026775,
+          "wall_seconds": 28.0,
+          "baseline_failed_est": 3.0,
+          "ace_failed_est": 4.0
+        },
+        "compare": {
+          "cost_usd": 0.0,
+          "wall_seconds": 8.0
+        }
+      },
+      "totals": {
+        "base": {
+          "cost_usd": 0.4560025,
+          "wall_seconds": 292.3740787941497
+        },
+        "low": {
+          "cost_usd": 0.364802,
+          "wall_seconds": 233.89926303531976
+        },
+        "high": {
+          "cost_usd": 0.6156033750000001,
+          "wall_seconds": 409.3237103118095
+        }
+      },
+      "assumptions": [
+        "Estimates scaled by ratio=1.0000 from source tasks to target tasks.",
+        "Eval stage assumes 21.0s per task per side in parallel.",
+        "Error stage assumes 7.0s per failed task per side in parallel.",
+        "Step scoring assumes prompt=220 and completion=40 tokens per scored step.",
+        "Step scoring assumes 1.8s latency per verifier call with 8 step workers.",
+        "Context parallelism factor for step overhead capped at 6.0."
+      ],
+      "step_inputs": {
+        "mean_steps": 28.2,
+        "non_empty_rate": 1.0,
+        "source_paths": [
+          "benchmark/results/smoke_v4_seed42_n5/ace_v4.jsonl",
+          "benchmark/results/smoke_v4_seed42_n5/ace_v4_graded.jsonl"
+        ],
+        "fallback_used": false,
+        "sample_size": 5
+      }
+    }
+  }
+}

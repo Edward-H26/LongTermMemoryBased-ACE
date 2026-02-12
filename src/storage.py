@@ -11,10 +11,11 @@ from __future__ import annotations
 import json
 import os
 import threading
+import time
 from typing import Any, Dict, Optional
 
 from neo4j import GraphDatabase
-from neo4j.exceptions import Neo4jError
+from neo4j.exceptions import DriverError, Neo4jError, SessionExpired
 
 _DRIVER = None
 _DRIVER_LOCK = threading.Lock()
@@ -45,6 +46,51 @@ def _get_database() -> Optional[str]:
     return os.getenv("NEO4J_DATABASE") or None
 
 
+def _safe_env_int(name: str, default: int) -> int:
+    value = os.getenv(name)
+    if value is None:
+        return default
+    try:
+        parsed = int(value)
+    except Exception:
+        return default
+    return parsed if parsed >= 0 else default
+
+
+def _safe_env_float(name: str, default: float) -> float:
+    value = os.getenv(name)
+    if value is None:
+        return default
+    try:
+        parsed = float(value)
+    except Exception:
+        return default
+    return parsed if parsed >= 0.0 else default
+
+
+def _safe_env_bool(name: str, default: bool) -> bool:
+    value = os.getenv(name)
+    if value is None:
+        return default
+    lowered = str(value).strip().lower()
+    if lowered in {"1", "true", "yes", "on"}:
+        return True
+    if lowered in {"0", "false", "no", "off"}:
+        return False
+    return default
+
+
+def _reset_driver() -> None:
+    global _DRIVER
+    with _DRIVER_LOCK:
+        if _DRIVER is not None:
+            try:
+                _DRIVER.close()
+            except Exception:
+                pass
+            _DRIVER = None
+
+
 class Neo4jMemoryStore:
     """Persist ACE memory state for a specific learner in Neo4j."""
 
@@ -53,10 +99,79 @@ class Neo4jMemoryStore:
             raise ValueError("learner_id is required for Neo4jMemoryStore")
         self.learner_id = learner_id
         self._database = _get_database()
+        self._retry_max = _safe_env_int("ACE_NEO4J_RETRY_MAX", 2)
+        self._retry_backoff_sec = _safe_env_float("ACE_NEO4J_RETRY_BACKOFF_SEC", 1.0)
+        self._reconnect_on_session_expired = _safe_env_bool(
+            "ACE_NEO4J_RECONNECT_ON_SESSION_EXPIRED",
+            True,
+        )
+
+    def _run_with_retry(
+        self,
+        operation_name: str,
+        fn,
+    ) -> Dict[str, Any]:
+        max_attempts = self._retry_max + 1
+        last_error = ""
+        for attempt in range(max_attempts):
+            try:
+                value = fn()
+                return {
+                    "ok": True,
+                    "value": value,
+                    "attempts": attempt + 1,
+                    "retries": attempt,
+                    "error": "",
+                }
+            except (Neo4jError, DriverError) as exc:
+                last_error = str(exc)
+                is_last = attempt >= max_attempts - 1
+                should_reconnect = (
+                    self._reconnect_on_session_expired
+                    and isinstance(exc, SessionExpired)
+                )
+                if should_reconnect:
+                    _reset_driver()
+                if is_last:
+                    print(
+                        f"[ACE Memory] Warning: Neo4j {operation_name} failed for learner={self.learner_id} "
+                        f"after {attempt + 1} attempt(s): {exc}",
+                        flush = True,
+                    )
+                    return {
+                        "ok": False,
+                        "value": None,
+                        "attempts": attempt + 1,
+                        "retries": attempt,
+                        "error": last_error,
+                    }
+                sleep_sec = self._retry_backoff_sec * (2 ** attempt)
+                if sleep_sec > 0:
+                    time.sleep(sleep_sec)
+            except Exception as exc:
+                last_error = str(exc)
+                print(
+                    f"[ACE Memory] Warning: Neo4j {operation_name} failed for learner={self.learner_id}: {exc}",
+                    flush = True,
+                )
+                return {
+                    "ok": False,
+                    "value": None,
+                    "attempts": attempt + 1,
+                    "retries": attempt,
+                    "error": last_error,
+                }
+        return {
+            "ok": False,
+            "value": None,
+            "attempts": max_attempts,
+            "retries": max_attempts - 1,
+            "error": last_error,
+        }
 
     def load(self) -> Optional[Dict[str, Any]]:
-        driver = _get_driver()
-        try:
+        def _op() -> Optional[Dict[str, Any]]:
+            driver = _get_driver()
             with driver.session(database=self._database) as session:
                 record = session.run(
                     """
@@ -97,18 +212,16 @@ class Neo4jMemoryStore:
                 if access_clock is not None and "access_clock" not in data:
                     data["access_clock"] = access_clock
                 return data
-        except Neo4jError as exc:
-            print(
-                f"[ACE Memory] Warning: Neo4j load failed for learner={self.learner_id}: {exc}",
-                flush=True,
-            )
+        result = self._run_with_retry("load", _op)
+        if not result.get("ok"):
             return None
+        return result.get("value")
 
-    def save(self, data: Dict[str, Any]) -> None:
-        driver = _get_driver()
+    def save(self, data: Dict[str, Any]) -> Dict[str, Any]:
         payload = json.dumps(data, ensure_ascii=False)
         access_clock = int(data.get("access_clock", 0))
-        try:
+        def _op() -> None:
+            driver = _get_driver()
             with driver.session(database=self._database) as session:
                 session.run(
                     """
@@ -128,8 +241,11 @@ class Neo4jMemoryStore:
                         "access_clock": access_clock,
                     },
                 )
-        except Neo4jError as exc:
-            print(
-                f"[ACE Memory] Warning: Neo4j save failed for learner={self.learner_id}: {exc}",
-                flush=True,
-            )
+            return None
+        result = self._run_with_retry("save", _op)
+        return {
+            "ok": bool(result.get("ok", False)),
+            "attempts": int(result.get("attempts", 1)),
+            "retries": int(result.get("retries", 0)),
+            "error": str(result.get("error", "")),
+        }

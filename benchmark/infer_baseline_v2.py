@@ -6,7 +6,7 @@ for prior tasks in multi-turn sequences), matching the official CL-bench
 infer.py protocol.
 
 Usage:
-    python -m benchmark.infer_baseline_v2 --max-samples 200 --output benchmark/results/baseline_v2.jsonl
+    python -m benchmark.infer_baseline_v2 --max-samples 200 --output benchmark/results/v2/baseline_v2.jsonl
 """
 
 import json
@@ -84,7 +84,7 @@ def call_api(client, messages, model, max_retries=3):
 def main():
     parser = argparse.ArgumentParser(description="CL-bench Baseline V2 Inference")
     parser.add_argument("--model", type=str, default="gpt-5.1")
-    parser.add_argument("--output", type=str, default="benchmark/results/baseline_v2.jsonl")
+    parser.add_argument("--output", type=str, default="benchmark/results/v2/baseline_v2.jsonl")
     parser.add_argument("--max-samples", type=int, default=None)
     parser.add_argument("--api-key", type=str, default=None)
     parser.add_argument("--base-url", type=str, default=None)

@@ -1,0 +1,580 @@
+{
+  "summary": {
+    "total_calls": 63,
+    "total_prompt_tokens": 335298,
+    "total_completion_tokens": 26148,
+    "total_tokens": 361446,
+    "avg_latency_ms": 8965.120893533503,
+    "median_latency_ms": 8656.635417137295,
+    "p95_latency_ms": 12532.161792041734
+  },
+  "records": [
+    {
+      "task_id": "",
+      "prompt_tokens": 4981,
+      "completion_tokens": 582,
+      "total_tokens": 5563,
+      "latency_ms": 12501.02087506093,
+      "backend": "gemini",
+      "model": "gemini-3-flash-preview"
+    },
+    {
+      "task_id": "",
+      "prompt_tokens": 12486,
+      "completion_tokens": 499,
+      "total_tokens": 12985,
+      "latency_ms": 10625.069125089794,
+      "backend": "gemini",
+      "model": "gemini-3-flash-preview"
+    },
+    {
+      "task_id": "",
+      "prompt_tokens": 1518,
+      "completion_tokens": 456,
+      "total_tokens": 1974,
+      "latency_ms": 9519.923416897655,
+      "backend": "gemini",
+      "model": "gemini-3-flash-preview"
+    },
+    {
+      "task_id": "",
+      "prompt_tokens": 2446,
+      "completion_tokens": 447,
+      "total_tokens": 2893,
+      "latency_ms": 11034.680125070736,
+      "backend": "gemini",
+      "model": "gemini-3-flash-preview"
+    },
+    {
+      "task_id": "",
+      "prompt_tokens": 2181,
+      "completion_tokens": 480,
+      "total_tokens": 2661,
+      "latency_ms": 6777.1512910258025,
+      "backend": "gemini",
+      "model": "gemini-3-flash-preview"
+    },
+    {
+      "task_id": "",
+      "prompt_tokens": 2200,
+      "completion_tokens": 405,
+      "total_tokens": 2605,
+      "latency_ms": 10089.366625063121,
+      "backend": "gemini",
+      "model": "gemini-3-flash-preview"
+    },
+    {
+      "task_id": "",
+      "prompt_tokens": 2149,
+      "completion_tokens": 470,
+      "total_tokens": 2619,
+      "latency_ms": 7753.184583969414,
+      "backend": "gemini",
+      "model": "gemini-3-flash-preview"
+    },
+    {
+      "task_id": "",
+      "prompt_tokens": 15792,
+      "completion_tokens": 458,
+      "total_tokens": 16250,
+      "latency_ms": 10804.397667059675,
+      "backend": "gemini",
+      "model": "gemini-3-flash-preview"
+    },
+    {
+      "task_id": "",
+      "prompt_tokens": 3338,
+      "completion_tokens": 610,
+      "total_tokens": 3948,
+      "latency_ms": 8319.350291974843,
+      "backend": "gemini",
+      "model": "gemini-3-flash-preview"
+    },
+    {
+      "task_id": "",
+      "prompt_tokens": 17707,
+      "completion_tokens": 475,
+      "total_tokens": 18182,
+      "latency_ms": 7791.124082868919,
+      "backend": "gemini",
+      "model": "gemini-3-flash-preview"
+    },
+    {
+      "task_id": "",
+      "prompt_tokens": 2980,
+      "completion_tokens": 514,
+      "total_tokens": 3494,
+      "latency_ms": 6866.690750000998,
+      "backend": "gemini",
+      "model": "gemini-3-flash-preview"
+    },
+    {
+      "task_id": "",
+      "prompt_tokens": 1965,
+      "completion_tokens": 79,
+      "total_tokens": 2044,
+      "latency_ms": 11285.152666969225,
+      "backend": "gemini",
+      "model": "gemini-3-flash-preview"
+    },
+    {
+      "task_id": "",
+      "prompt_tokens": 2063,
+      "completion_tokens": 371,
+      "total_tokens": 2434,
+      "latency_ms": 8230.76408309862,
+      "backend": "gemini",
+      "model": "gemini-3-flash-preview"
+    },
+    {
+      "task_id": "",
+      "prompt_tokens": 8640,
+      "completion_tokens": 485,
+      "total_tokens": 9125,
+      "latency_ms": 9802.997875027359,
+      "backend": "gemini",
+      "model": "gemini-3-flash-preview"
+    },
+    {
+      "task_id": "",
+      "prompt_tokens": 871,
+      "completion_tokens": 431,
+      "total_tokens": 1302,
+      "latency_ms": 8981.484749820083,
+      "backend": "gemini",
+      "model": "gemini-3-flash-preview"
+    },
+    {
+      "task_id": "",
+      "prompt_tokens": 664,
+      "completion_tokens": 380,
+      "total_tokens": 1044,
+      "latency_ms": 7818.0897501297295,
+      "backend": "gemini",
+      "model": "gemini-3-flash-preview"
+    },
+    {
+      "task_id": "",
+      "prompt_tokens": 6847,
+      "completion_tokens": 480,
+      "total_tokens": 7327,
+      "latency_ms": 10838.977542007342,
+      "backend": "gemini",
+      "model": "gemini-3-flash-preview"
+    },
+    {
+      "task_id": "",
+      "prompt_tokens": 699,
+      "completion_tokens": 255,
+      "total_tokens": 954,
+      "latency_ms": 6375.688957981765,
+      "backend": "gemini",
+      "model": "gemini-3-flash-preview"
+    },
+    {
+      "task_id": "",
+      "prompt_tokens": 843,
+      "completion_tokens": 451,
+      "total_tokens": 1294,
+      "latency_ms": 9289.50379206799,
+      "backend": "gemini",
+      "model": "gemini-3-flash-preview"
+    },
+    {
+      "task_id": "",
+      "prompt_tokens": 55443,
+      "completion_tokens": 566,
+      "total_tokens": 56009,
+      "latency_ms": 11531.289916019887,
+      "backend": "gemini",
+      "model": "gemini-3-flash-preview"
+    },
+    {
+      "task_id": "",
+      "prompt_tokens": 1842,
+      "completion_tokens": 371,
+      "total_tokens": 2213,
+      "latency_ms": 8918.250750051811,
+      "backend": "gemini",
+      "model": "gemini-3-flash-preview"
+    },
+    {
+      "task_id": "",
+      "prompt_tokens": 1830,
+      "completion_tokens": 412,
+      "total_tokens": 2242,
+      "latency_ms": 8316.07020786032,
+      "backend": "gemini",
+      "model": "gemini-3-flash-preview"
+    },
+    {
+      "task_id": "",
+      "prompt_tokens": 28539,
+      "completion_tokens": 407,
+      "total_tokens": 28946,
+      "latency_ms": 7342.08908281289,
+      "backend": "gemini",
+      "model": "gemini-3-flash-preview"
+    },
+    {
+      "task_id": "",
+      "prompt_tokens": 1281,
+      "completion_tokens": 384,
+      "total_tokens": 1665,
+      "latency_ms": 9613.11879218556,
+      "backend": "gemini",
+      "model": "gemini-3-flash-preview"
+    },
+    {
+      "task_id": "",
+      "prompt_tokens": 760,
+      "completion_tokens": 351,
+      "total_tokens": 1111,
+      "latency_ms": 7114.561749855056,
+      "backend": "gemini",
+      "model": "gemini-3-flash-preview"
+    },
+    {
+      "task_id": "",
+      "prompt_tokens": 1382,
+      "completion_tokens": 397,
+      "total_tokens": 1779,
+      "latency_ms": 8287.539167096838,
+      "backend": "gemini",
+      "model": "gemini-3-flash-preview"
+    },
+    {
+      "task_id": "",
+      "prompt_tokens": 24468,
+      "completion_tokens": 465,
+      "total_tokens": 24933,
+      "latency_ms": 9711.884584045038,
+      "backend": "gemini",
+      "model": "gemini-3-flash-preview"
+    },
+    {
+      "task_id": "",
+      "prompt_tokens": 1853,
+      "completion_tokens": 481,
+      "total_tokens": 2334,
+      "latency_ms": 7895.827125059441,
+      "backend": "gemini",
+      "model": "gemini-3-flash-preview"
+    },
+    {
+      "task_id": "",
+      "prompt_tokens": 588,
+      "completion_tokens": 354,
+      "total_tokens": 942,
+      "latency_ms": 6607.5776249635965,
+      "backend": "gemini",
+      "model": "gemini-3-flash-preview"
+    },
+    {
+      "task_id": "",
+      "prompt_tokens": 2270,
+      "completion_tokens": 476,
+      "total_tokens": 2746,
+      "latency_ms": 10547.171415993944,
+      "backend": "gemini",
+      "model": "gemini-3-flash-preview"
+    },
+    {
+      "task_id": "",
+      "prompt_tokens": 2385,
+      "completion_tokens": 79,
+      "total_tokens": 2464,
+      "latency_ms": 12879.352833842859,
+      "backend": "gemini",
+      "model": "gemini-3-flash-preview"
+    },
+    {
+      "task_id": "",
+      "prompt_tokens": 2483,
+      "completion_tokens": 427,
+      "total_tokens": 2910,
+      "latency_ms": 6987.83433297649,
+      "backend": "gemini",
+      "model": "gemini-3-flash-preview"
+    },
+    {
+      "task_id": "",
+      "prompt_tokens": 2246,
+      "completion_tokens": 417,
+      "total_tokens": 2663,
+      "latency_ms": 8193.865959066898,
+      "backend": "gemini",
+      "model": "gemini-3-flash-preview"
+    },
+    {
+      "task_id": "",
+      "prompt_tokens": 2376,
+      "completion_tokens": 466,
+      "total_tokens": 2842,
+      "latency_ms": 9913.11650001444,
+      "backend": "gemini",
+      "model": "gemini-3-flash-preview"
+    },
+    {
+      "task_id": "",
+      "prompt_tokens": 2286,
+      "completion_tokens": 410,
+      "total_tokens": 2696,
+      "latency_ms": 8910.147791961208,
+      "backend": "gemini",
+      "model": "gemini-3-flash-preview"
+    },
+    {
+      "task_id": "",
+      "prompt_tokens": 2610,
+      "completion_tokens": 469,
+      "total_tokens": 3079,
+      "latency_ms": 7990.374540910125,
+      "backend": "gemini",
+      "model": "gemini-3-flash-preview"
+    },
+    {
+      "task_id": "",
+      "prompt_tokens": 2373,
+      "completion_tokens": 473,
+      "total_tokens": 2846,
+      "latency_ms": 10277.977915946394,
+      "backend": "gemini",
+      "model": "gemini-3-flash-preview"
+    },
+    {
+      "task_id": "",
+      "prompt_tokens": 2361,
+      "completion_tokens": 515,
+      "total_tokens": 2876,
+      "latency_ms": 8674.975167028606,
+      "backend": "gemini",
+      "model": "gemini-3-flash-preview"
+    },
+    {
+      "task_id": "",
+      "prompt_tokens": 2371,
+      "completion_tokens": 376,
+      "total_tokens": 2747,
+      "latency_ms": 10190.843041986227,
+      "backend": "gemini",
+      "model": "gemini-3-flash-preview"
+    },
+    {
+      "task_id": "",
+      "prompt_tokens": 16296,
+      "completion_tokens": 534,
+      "total_tokens": 16830,
+      "latency_ms": 10262.90366705507,
+      "backend": "gemini",
+      "model": "gemini-3-flash-preview"
+    },
+    {
+      "task_id": "",
+      "prompt_tokens": 1151,
+      "completion_tokens": 489,
+      "total_tokens": 1640,
+      "latency_ms": 7409.69616593793,
+      "backend": "gemini",
+      "model": "gemini-3-flash-preview"
+    },
+    {
+      "task_id": "",
+      "prompt_tokens": 1699,
+      "completion_tokens": 418,
+      "total_tokens": 2117,
+      "latency_ms": 8679.167792201042,
+      "backend": "gemini",
+      "model": "gemini-3-flash-preview"
+    },
+    {
+      "task_id": "",
+      "prompt_tokens": 4723,
+      "completion_tokens": 311,
+      "total_tokens": 5034,
+      "latency_ms": 15205.69616695866,
+      "backend": "gemini",
+      "model": "gemini-3-flash-preview"
+    },
+    {
+      "task_id": "",
+      "prompt_tokens": 5053,
+      "completion_tokens": 487,
+      "total_tokens": 5540,
+      "latency_ms": 7767.579792067409,
+      "backend": "gemini",
+      "model": "gemini-3-flash-preview"
+    },
+    {
+      "task_id": "",
+      "prompt_tokens": 1738,
+      "completion_tokens": 565,
+      "total_tokens": 2303,
+      "latency_ms": 13364.618125138804,
+      "backend": "gemini",
+      "model": "gemini-3-flash-preview"
+    },
+    {
+      "task_id": "",
+      "prompt_tokens": 9848,
+      "completion_tokens": 434,
+      "total_tokens": 10282,
+      "latency_ms": 8491.98029213585,
+      "backend": "gemini",
+      "model": "gemini-3-flash-preview"
+    },
+    {
+      "task_id": "",
+      "prompt_tokens": 549,
+      "completion_tokens": 271,
+      "total_tokens": 820,
+      "latency_ms": 7518.69579218328,
+      "backend": "gemini",
+      "model": "gemini-3-flash-preview"
+    },
+    {
+      "task_id": "",
+      "prompt_tokens": 7450,
+      "completion_tokens": 375,
+      "total_tokens": 7825,
+      "latency_ms": 5512.177082942799,
+      "backend": "gemini",
+      "model": "gemini-3-flash-preview"
+    },
+    {
+      "task_id": "",
+      "prompt_tokens": 518,
+      "completion_tokens": 367,
+      "total_tokens": 885,
+      "latency_ms": 8656.635417137295,
+      "backend": "gemini",
+      "model": "gemini-3-flash-preview"
+    },
+    {
+      "task_id": "",
+      "prompt_tokens": 6866,
+      "completion_tokens": 487,
+      "total_tokens": 7353,
+      "latency_ms": 8272.89850008674,
+      "backend": "gemini",
+      "model": "gemini-3-flash-preview"
+    },
+    {
+      "task_id": "",
+      "prompt_tokens": 493,
+      "completion_tokens": 302,
+      "total_tokens": 795,
+      "latency_ms": 8065.443082945421,
+      "backend": "gemini",
+      "model": "gemini-3-flash-preview"
+    },
+    {
+      "task_id": "",
+      "prompt_tokens": 5579,
+      "completion_tokens": 398,
+      "total_tokens": 5977,
+      "latency_ms": 10273.665707791224,
+      "backend": "gemini",
+      "model": "gemini-3-flash-preview"
+    },
+    {
+      "task_id": "",
+      "prompt_tokens": 494,
+      "completion_tokens": 291,
+      "total_tokens": 785,
+      "latency_ms": 6392.836458049715,
+      "backend": "gemini",
+      "model": "gemini-3-flash-preview"
+    },
+    {
+      "task_id": "",
+      "prompt_tokens": 449,
+      "completion_tokens": 280,
+      "total_tokens": 729,
+      "latency_ms": 7522.844541119412,
+      "backend": "gemini",
+      "model": "gemini-3-flash-preview"
+    },
+    {
+      "task_id": "",
+      "prompt_tokens": 6950,
+      "completion_tokens": 428,
+      "total_tokens": 7378,
+      "latency_ms": 8809.668833157048,
+      "backend": "gemini",
+      "model": "gemini-3-flash-preview"
+    },
+    {
+      "task_id": "",
+      "prompt_tokens": 858,
+      "completion_tokens": 382,
+      "total_tokens": 1240,
+      "latency_ms": 6181.8279169965535,
+      "backend": "gemini",
+      "model": "gemini-3-flash-preview"
+    },
+    {
+      "task_id": "",
+      "prompt_tokens": 9793,
+      "completion_tokens": 576,
+      "total_tokens": 10369,
+      "latency_ms": 10142.992249922827,
+      "backend": "gemini",
+      "model": "gemini-3-flash-preview"
+    },
+    {
+      "task_id": "",
+      "prompt_tokens": 4053,
+      "completion_tokens": 373,
+      "total_tokens": 4426,
+      "latency_ms": 6879.966957960278,
+      "backend": "gemini",
+      "model": "gemini-3-flash-preview"
+    },
+    {
+      "task_id": "",
+      "prompt_tokens": 448,
+      "completion_tokens": 289,
+      "total_tokens": 737,
+      "latency_ms": 6300.59799994342,
+      "backend": "gemini",
+      "model": "gemini-3-flash-preview"
+    },
+    {
+      "task_id": "",
+      "prompt_tokens": 7373,
+      "completion_tokens": 254,
+      "total_tokens": 7627,
+      "latency_ms": 12532.161792041734,
+      "backend": "gemini",
+      "model": "gemini-3-flash-preview"
+    },
+    {
+      "task_id": "",
+      "prompt_tokens": 7644,
+      "completion_tokens": 405,
+      "total_tokens": 8049,
+      "latency_ms": 7385.929082985967,
+      "backend": "gemini",
+      "model": "gemini-3-flash-preview"
+    },
+    {
+      "task_id": "",
+      "prompt_tokens": 951,
+      "completion_tokens": 270,
+      "total_tokens": 1221,
+      "latency_ms": 7700.905875070021,
+      "backend": "gemini",
+      "model": "gemini-3-flash-preview"
+    },
+    {
+      "task_id": "",
+      "prompt_tokens": 2205,
+      "completion_tokens": 538,
+      "total_tokens": 2743,
+      "latency_ms": 10863.240249920636,
+      "backend": "gemini",
+      "model": "gemini-3-flash-preview"
+    }
+  ]
+}

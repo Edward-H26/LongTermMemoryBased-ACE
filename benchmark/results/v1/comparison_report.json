@@ -1,0 +1,46 @@
+{
+  "baseline_solving_rates": {
+    "overall": 13.5,
+    "total": 200,
+    "score_1": 27,
+    "categories": {
+      "Rule System Application": 13.836477987421384,
+      "Procedural Task Execution": 16.666666666666664,
+      "Empirical Discovery & Simulation": 0.0,
+      "Domain Knowledge Reasoning": 15.0
+    }
+  },
+  "ace_solving_rates": {
+    "overall": 6.030150753768844,
+    "total": 199,
+    "score_1": 12,
+    "categories": {
+      "Rule System Application": 5.660377358490567,
+      "Procedural Task Execution": 16.666666666666664,
+      "Empirical Discovery & Simulation": 0.0,
+      "Domain Knowledge Reasoning": 5.0
+    }
+  },
+  "baseline_error_distribution": {
+    "CONTEXT_IGNORED": 66.0,
+    "CONTEXT_MISUSED": 6.5,
+    "FORMAT_ERROR": 54.0,
+    "REFUSAL": 9.0
+  },
+  "ace_error_distribution": {
+    "CONTEXT_IGNORED": 73.36683417085426,
+    "CONTEXT_MISUSED": 4.522613065326634,
+    "FORMAT_ERROR": 68.34170854271356,
+    "REFUSAL": 28.643216080402013
+  },
+  "baseline_metrics": {
+    "avg_latency_ms": 25273.75386146363,
+    "avg_tokens": 17751.365,
+    "total_tokens": 3550273
+  },
+  "ace_metrics": {
+    "avg_latency_ms": 34061.50506383122,
+    "avg_tokens": 114524.4120603015,
+    "total_tokens": 22790358
+  }
+}

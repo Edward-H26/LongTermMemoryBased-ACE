@@ -8,9 +8,7 @@ dist/
 build/
 .venv/
 venv/
-benchmark/results/*.jsonl
-benchmark/results/*.json
-benchmark/results/*.md
 conversation_memory.json
 ace_memory_export.txt
 .DS_Store
+*.log

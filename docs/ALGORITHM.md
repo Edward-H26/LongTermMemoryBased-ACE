@@ -1,4 +1,4 @@
-# LTMBSE ACE Algorithm (V3 Accurate Specification)
+# LTMBSE ACE Algorithm (V5 Accurate Specification)
 
 ## 1. System Overview
 
@@ -15,6 +15,12 @@ Core benchmark streams:
 - Baseline v3: `benchmark/infer_baseline_v3.py`
 - ACE direct v3: `benchmark/infer_ace_direct_v3.py`
 - One-command orchestration: `benchmark/run_v3.py`
+- Baseline v4: `benchmark/infer_baseline_v4.py`
+- ACE direct v4: `benchmark/infer_ace_direct_v4.py`
+- One-command orchestration (v4): `benchmark/run_v4.py`
+- Baseline v5: `benchmark/infer_baseline_v5.py`
+- ACE direct v5: `benchmark/infer_ace_direct_v5.py`
+- One-command orchestration (v5): `benchmark/run_v5.py`
 
 ## 2. Memory Model
 
@@ -147,6 +153,7 @@ Manifest fields:
 - `split`
 - `seed`
 - `max_samples`
+- `sampling_strategy`
 - `selected_count`
 - `created_at`
 - `task_ids` (ordered)
@@ -160,7 +167,9 @@ If manifest file exists:
 
 If manifest does not exist:
 
-- sample deterministic indices using `random.Random(seed).sample(...)`,
+- select subset using strategy:
+  `task_random` uses deterministic index sampling,
+  `context_dense` prioritizes contexts with at least two tasks then fills to target size,
 - sort indices,
 - build subset in sorted-index order,
 - persist manifest when a path is provided.
@@ -208,7 +217,7 @@ Default command:
 
 ```bash
 python -m benchmark.run_v3 \
-  --manifest benchmark/results/subset_manifest_v3_seed42_n200.json \
+  --manifest benchmark/results/v3/subset_manifest_v3_seed42_n200.json \
   --max-samples 200 \
   --seed 42
 ```
@@ -223,6 +232,158 @@ Default behavior:
 
 `benchmark.complete_v3_pipeline.py` currently uses fixed `TARGET = 200`.
 For non-200 subset runs, use `--no-with-report` and run eval/error/compare manually.
+
+## 6.4 Benchmark v4 (`benchmark/infer_baseline_v4.py`, `benchmark/infer_ace_direct_v4.py`)
+
+V4 keeps deterministic sampling and adds:
+
+1. Capped-output retry:
+   if a response is empty and completion tokens hit cap, retry with a higher cap.
+2. Memory scope modes:
+   `local`, `global`, `hybrid`.
+3. Dual-memory updates:
+   local updates follow quality gate pass;
+   global updates require gate pass plus `gate_score >= ACE_GLOBAL_GATE_SCORE_MIN`.
+4. Context-level parallel execution:
+   tasks are processed per-context concurrently, while final write order remains manifest order.
+5. Step scoring diagnostics:
+   each output records process-level step scoring summary.
+
+New v4 metrics include:
+
+- `num_local_bullets_retrieved`
+- `num_global_bullets_retrieved`
+- `num_seed_bullets_retrieved`
+- `num_learned_bullets_retrieved`
+- `memory_scope_mode`
+- `completion_capped`
+- `empty_output_retry_count`
+- `step_scoring`
+
+## 6.5 One-command v4 orchestration (`benchmark/run_v4.py`)
+
+Default command:
+
+```bash
+python -m benchmark.run_v4 \
+  --manifest benchmark/results/v4/subset_manifest_v4_seed42_n200.json \
+  --max-samples 200 \
+  --seed 42 \
+  --memory-scope hybrid
+```
+
+Default behavior:
+
+1. Clear v4 outputs (unless `--no-clear-results`).
+2. Clear Neo4j (unless `--no-clear-db`).
+3. Run baseline v4 and ACE v4 inference in parallel.
+4. Enforce completion check against requested sample count.
+5. If `--with-report` (default true), call `benchmark.complete_v4_pipeline --output-dir ... --skip-wait --max-samples ...`.
+
+### 6.5.1 Dual preflight support (`benchmark/preflight_v4.py`)
+
+`run_v4` supports a preflight branch controlled by:
+
+- `--preflight-mode {off,static,smoke,both}` (default `off`)
+- `--smoke-samples {3,4,5}` (default `5`)
+- `--smoke-output-dir` (default `benchmark/results/v4/smoke_v4`)
+- `--estimate-source {auto,v4,v3,heuristic}` (default `auto`)
+- `--preflight-report` (default `benchmark/results/v4/preflight_v4.json`)
+
+Preflight flow:
+
+1. `static`: validate env, module availability, manifest/output path usability, and build low/base/high cost-time estimate without benchmark API calls.
+2. `smoke`: execute full mini pipeline on `3` to `5` tasks (inference, eval, error analysis, compare) in smoke output dir.
+3. `both`: run static first, then smoke if static returns no blocking issues.
+4. Write unified JSON report with checks, assumptions, estimates, measured smoke metrics, and scaled full-run projection.
+
+### 6.5.2 Sample-size safety guard
+
+`benchmark/sampling.py` now rejects `max_samples <= 0` with a clear error message:
+
+- valid: `max_samples` is `None` or any positive integer
+- invalid: `max_samples <= 0`
+
+This prevents accidental full-dataset execution from invalid command arguments.
+
+## 6.6 Benchmark v5 reliability extensions (`benchmark/infer_baseline_v5.py`, `benchmark/infer_ace_direct_v5.py`)
+
+V5 keeps v4 scoring behavior and adds fault tolerance and resumability:
+
+1. Storage reliability:
+   `src/storage.py` retries Neo4j load/save and handles both `Neo4jError` and `DriverError` paths.
+2. Session recovery:
+   on `SessionExpired`, driver reset/reconnect is triggered when enabled.
+3. Fail-soft memory persistence:
+   `src/ace_memory.py` records persist status (`ok`, retries, error) instead of forcing fatal exceptions by default.
+4. Durable per-task journaling:
+   ACE writes each task result into `<output>.progress.jsonl` as soon as the task completes.
+5. Resume from progress:
+   startup merges completed IDs from final output and progress journal.
+6. Deterministic finalization:
+   output can be rebuilt in manifest order from output + progress sources (`--finalize-order`).
+7. Completion marker:
+   `<output>.complete.json` records selected and completed row counts.
+
+New v5 runtime metrics include:
+
+- `progress_written`
+- `resume_source`
+- `memory_write_retries`
+- `memory_write_failed`
+- `memory_error`
+
+## 6.7 One-command v5 orchestration (`benchmark/run_v5.py`)
+
+Default command:
+
+```bash
+python -m benchmark.run_v5 \
+  --manifest benchmark/results/v5/subset_manifest_v5_seed42_n200.json \
+  --max-samples 200 \
+  --seed 42 \
+  --memory-scope hybrid
+```
+
+Default behavior:
+
+1. Clear v5 outputs (unless `--no-clear-results`).
+2. Clear Neo4j (unless `--no-clear-db`).
+3. Run baseline v5 and ACE v5 inference in parallel.
+4. Write and maintain `benchmark/results/v5/run_v5_meta.json` with phase start and end timestamps.
+5. Enforce completion check against requested sample count.
+6. If `--with-report` (default true), call `benchmark.complete_v5_pipeline --output-dir ... --skip-wait --max-samples ...` and pass dual-source cost flags and run metadata path.
+
+### 6.7.1 V5 preflight (`benchmark/preflight_v5.py`)
+
+`run_v5` preflight options:
+
+- `--preflight-mode {off,static,smoke,both}`
+- `--smoke-samples {3,4,5}`
+- `--smoke-output-dir` default `benchmark/results/v5/smoke_v5`
+- `--estimate-source {auto,v5,v4,v3,heuristic}`
+- `--preflight-report` default `benchmark/results/v5/preflight_v5.json`
+
+Static mode now validates progress-journal path writability in addition to manifest and output paths.
+In `auto` estimate mode, source priority is `v4` report data first, then `v5`, then `v3`, then heuristic fallback.
+Step-scoring token and latency assumptions use empirical auxiliary-call profiles from `ace_v*_metrics.json` when available, with explicit fallback defaults when missing.
+Smoke measured-cost scaling prefers full-pipeline measured cost from `comparison_report_v5.json.full_pipeline_cost_metered.combined_total_cost_usd`, with inference-only fallback when absent.
+
+### 6.7.2 V5 post-inference pipeline (`benchmark/complete_v5_pipeline.py`)
+
+V5 post pipeline runs:
+
+1. baseline and ACE eval in parallel;
+2. retry failed side only (bounded by `--stage-retry-max`);
+3. write eval usage metrics into:
+   `baseline_v5_graded_eval_metrics.json`, `ace_v5_graded_eval_metrics.json`;
+4. baseline and ACE error analysis in parallel;
+5. retry failed side only;
+6. write error-analysis usage metrics into:
+   `baseline_v5_graded_errors_error_metrics.json`, `ace_v5_graded_errors_error_metrics.json`;
+7. task-id parity check before compare;
+8. compare with cost mode and billing policy flags;
+9. strict billed reconciliation when `cost_mode=dual_source` and `billing_policy=strict`.
 
 ## 7. Runtime Parity With Benchmark Gate
 
@@ -241,6 +402,30 @@ This means online runtime updates and benchmark v3 updates share gate logic and 
 - Table 2 error distributions.
 - Table 3 token, latency, and estimated cost.
 - Table 4 per-category token and latency.
+- Table 5 runtime diagnostics when fields are present:
+  carryover coverage, learned retrieval rate, capped-output rate, mean step score, quality-gate apply rate.
+- Table 6 full-pipeline actual metered cost by phase:
+  baseline inference, ACE inference, ACE auxiliary, baseline eval, ACE eval, baseline error analysis, ACE error analysis, and totals.
+- Table 7 OpenAI billed reconciliation:
+  project-scoped billed cost for run window, metered-vs-billed delta, and reconciliation status.
+- V5 diagnostics extensions:
+  resume recovery rate, memory write failure rate, progress checkpoint count.
+
+Cost mode behavior:
+
+1. `legacy`:
+   keep inference-only comparability fields and skip billed reconciliation.
+2. `dual_source`:
+   aggregate metered tokens from graded rows, ACE auxiliary metrics, eval metrics, and error metrics.
+3. strict billing policy:
+   compare fails if admin credentials, project scope, run window, or billed query response is missing or unusable.
+
+Additive JSON fields in `comparison_report_v5.json`:
+
+- `full_pipeline_cost_metered`
+- `cost_breakdown_by_phase`
+- `openai_billed_reconciliation`
+- `cost_reconciliation_status`
 
 It also enforces baseline versus ACE task-id set equality before report generation.
 
@@ -252,4 +437,5 @@ Detailed formulas are documented in:
 
 - `docs/SETUP.md`: environment and end-to-end commands.
 - `docs/CL_BENCH_CALCULATION_DETAILS.md`: upstream CL-bench computation details.
+- `docs/RESULTS_STRUCTURE.md`: canonical versioned output tree and schemas.
 - `README.md`: operational quick start and artifact expectations.

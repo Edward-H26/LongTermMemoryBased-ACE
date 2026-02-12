@@ -1,0 +1,16 @@
+{
+  "dataset": "tencent/CL-bench",
+  "split": "train",
+  "seed": 42,
+  "max_samples": 5,
+  "sampling_strategy": "context_dense",
+  "selected_count": 5,
+  "created_at": "2026-02-11T18:23:47.060484+00:00",
+  "task_ids": [
+    "5eb091ea-0575-4b2c-9d22-c4f6c91a5863",
+    "c586a615-a15e-4a5d-9782-df9caa36380c",
+    "4b942706-f2f5-45bd-99d2-b3821bb82274",
+    "44e8a5eb-5584-4f42-9de0-6fb7f0361ff2",
+    "0261dd0f-2418-49f4-90be-f62b20e80174"
+  ]
+}

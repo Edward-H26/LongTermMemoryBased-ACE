@@ -9,7 +9,7 @@ import subprocess
 import sys
 import time
 
-RESULTS_DIR = "benchmark/results"
+RESULTS_DIR = "benchmark/results/v3"
 TARGET = 200
 
 

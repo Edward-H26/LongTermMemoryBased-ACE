@@ -14,7 +14,7 @@ FIX from v1:
 - Database clearing for fresh experiments
 
 Usage:
-    python -m benchmark.infer_ace_direct_v2 --max-samples 200 --clear-memory --output benchmark/results/ace_v2.jsonl
+    python -m benchmark.infer_ace_direct_v2 --max-samples 200 --clear-memory --output benchmark/results/v2/ace_v2.jsonl
 """
 
 import json
@@ -223,7 +223,7 @@ def apply_lessons_to_memory(memory, lessons, context_id):
 
 def main():
     parser = argparse.ArgumentParser(description="CL-bench ACE Direct V2 Inference")
-    parser.add_argument("--output", type=str, default="benchmark/results/ace_v2.jsonl")
+    parser.add_argument("--output", type=str, default="benchmark/results/v2/ace_v2.jsonl")
     parser.add_argument("--max-samples", type=int, default=None)
     parser.add_argument("--model", type=str, default=None)
     parser.add_argument("--clear-memory", action="store_true", help="Clear all ACE memory before starting")

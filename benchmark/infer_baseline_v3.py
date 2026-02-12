@@ -8,8 +8,8 @@ Usage:
     python -m benchmark.infer_baseline_v3 \
         --max-samples 200 \
         --seed 42 \
-        --manifest benchmark/results/subset_manifest_v3_seed42_n200.json \
-        --output benchmark/results/baseline_v3.jsonl
+        --manifest benchmark/results/v3/subset_manifest_v3_seed42_n200.json \
+        --output benchmark/results/v3/baseline_v3.jsonl
 """
 
 import argparse
@@ -90,7 +90,7 @@ def call_api(client, messages, model, max_retries = 3):
 def main():
     parser = argparse.ArgumentParser(description = "CL-bench Baseline V3 Inference")
     parser.add_argument("--model", type = str, default = "gpt-5.1")
-    parser.add_argument("--output", type = str, default = "benchmark/results/baseline_v3.jsonl")
+    parser.add_argument("--output", type = str, default = "benchmark/results/v3/baseline_v3.jsonl")
     parser.add_argument("--max-samples", type = int, default = None)
     parser.add_argument("--seed", type = int, default = 42)
     parser.add_argument("--manifest", type = str, default = None)

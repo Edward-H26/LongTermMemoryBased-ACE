@@ -1,0 +1,132 @@
+{
+  "baseline_solving_rates": {
+    "overall": 40.0,
+    "total": 5,
+    "score_1": 2,
+    "categories": {
+      "Domain Knowledge Reasoning": 33.33333333333333,
+      "Rule System Application": 50.0
+    },
+    "category_counts": {
+      "Domain Knowledge Reasoning": 3,
+      "Rule System Application": 2
+    }
+  },
+  "ace_solving_rates": {
+    "overall": 20.0,
+    "total": 5,
+    "score_1": 1,
+    "categories": {
+      "Domain Knowledge Reasoning": 0.0,
+      "Rule System Application": 50.0
+    },
+    "category_counts": {
+      "Domain Knowledge Reasoning": 3,
+      "Rule System Application": 2
+    }
+  },
+  "baseline_error_distribution": {
+    "CONTEXT_IGNORED": 40.0,
+    "CONTEXT_MISUSED": 0.0,
+    "FORMAT_ERROR": 60.0,
+    "REFUSAL": 0.0
+  },
+  "ace_error_distribution": {
+    "CONTEXT_IGNORED": 60.0,
+    "CONTEXT_MISUSED": 0.0,
+    "FORMAT_ERROR": 40.0,
+    "REFUSAL": 0.0
+  },
+  "baseline_metrics": {
+    "avg_latency_ms": 27493.14655843191,
+    "p50_latency_ms": 16176.92270805128,
+    "p95_latency_ms": 81669.4089169614,
+    "avg_tokens": 11027.6,
+    "avg_prompt_tokens": 9357.0,
+    "avg_completion_tokens": 1670.6,
+    "total_tokens": 55138,
+    "total_prompt_tokens": 46785,
+    "total_completion_tokens": 8353,
+    "cost_usd": 0.14201124999999998
+  },
+  "ace_metrics": {
+    "avg_latency_ms": 29374.815758829936,
+    "p50_latency_ms": 14830.401417100802,
+    "p95_latency_ms": 80238.61712496728,
+    "avg_tokens": 11177.2,
+    "avg_prompt_tokens": 9489.0,
+    "avg_completion_tokens": 1688.2,
+    "total_tokens": 55886,
+    "total_prompt_tokens": 47445,
+    "total_completion_tokens": 8441,
+    "cost_usd": 0.14371625000000002
+  },
+  "baseline_category_metrics": {
+    "Domain Knowledge Reasoning": {
+      "avg_latency_ms": 38314.7919170248,
+      "p50_latency_ms": 19655.00241704285,
+      "p95_latency_ms": 81669.4089169614,
+      "avg_tokens": 12161.0,
+      "avg_prompt_tokens": 10130.666666666666,
+      "avg_completion_tokens": 2030.3333333333333,
+      "total_tokens": 36483,
+      "total_prompt_tokens": 30392,
+      "total_completion_tokens": 6091,
+      "cost_usd": 0.09889999999999999
+    },
+    "Rule System Application": {
+      "avg_latency_ms": 11260.67852054257,
+      "p50_latency_ms": 16176.92270805128,
+      "p95_latency_ms": 16176.92270805128,
+      "avg_tokens": 9327.5,
+      "avg_prompt_tokens": 8196.5,
+      "avg_completion_tokens": 1131.0,
+      "total_tokens": 18655,
+      "total_prompt_tokens": 16393,
+      "total_completion_tokens": 2262,
+      "cost_usd": 0.043111250000000004
+    }
+  },
+  "ace_category_metrics": {
+    "Domain Knowledge Reasoning": {
+      "avg_latency_ms": 36609.38912536949,
+      "p50_latency_ms": 14830.401417100802,
+      "p95_latency_ms": 80238.61712496728,
+      "avg_tokens": 12349.666666666666,
+      "avg_prompt_tokens": 10262.666666666666,
+      "avg_completion_tokens": 2087.0,
+      "total_tokens": 37049,
+      "total_prompt_tokens": 30788,
+      "total_completion_tokens": 6261,
+      "cost_usd": 0.10109499999999999
+    },
+    "Rule System Application": {
+      "avg_latency_ms": 18522.955709020607,
+      "p50_latency_ms": 32485.97695911303,
+      "p95_latency_ms": 32485.97695911303,
+      "avg_tokens": 9418.5,
+      "avg_prompt_tokens": 8328.5,
+      "avg_completion_tokens": 1090.0,
+      "total_tokens": 18837,
+      "total_prompt_tokens": 16657,
+      "total_completion_tokens": 2180,
+      "cost_usd": 0.04262125
+    }
+  },
+  "baseline_v4_diagnostics": {
+    "carryover_coverage_pct": 0.0,
+    "learned_retrieval_rate": 0.0,
+    "capped_output_rate_pct": 0.0,
+    "mean_step_score": 0.0,
+    "quality_gate_apply_rate_pct": 0.0,
+    "num_rows": 5
+  },
+  "ace_v4_diagnostics": {
+    "carryover_coverage_pct": 0.0,
+    "learned_retrieval_rate": 0.0,
+    "capped_output_rate_pct": 0.0,
+    "mean_step_score": 0.6758024149378308,
+    "quality_gate_apply_rate_pct": 0.0,
+    "num_rows": 5
+  }
+}

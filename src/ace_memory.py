@@ -233,6 +233,13 @@ class ACEMemory:
         self.hash_index: Dict[str, Set[str]] = defaultdict(set)
         self._fresh_from_init = False
         self._loaded_once = False
+        self._last_persist_status: Dict[str, Any] = {
+            "ok": True,
+            "attempts": 0,
+            "retries": 0,
+            "error": "",
+            "timestamp": None,
+        }
 
         self._load_memory()
         self._fresh_from_init = True
@@ -576,7 +583,10 @@ class ACEMemory:
         self._loaded_once = True
         self._fresh_from_init = False
 
-    def _save_memory(self):
+    def get_last_persist_status(self) -> Dict[str, Any]:
+        return dict(self._last_persist_status)
+
+    def _save_memory(self, raise_on_failure: bool = False) -> Dict[str, Any]:
         data = {
             "bullets": [bullet.to_dict() for bullet in self.bullets.values()],
             "version": "1.0",
@@ -584,10 +594,43 @@ class ACEMemory:
             "access_clock": self.access_clock,
         }
         try:
-            self._storage.save(data)
+            save_result = self._storage.save(data)
         except Exception as exc:
-            print(f"[ACE Memory] ERROR: Failed to save memory to Neo4j: {exc}", flush=True)
-            raise
+            save_result = {
+                "ok": False,
+                "attempts": 1,
+                "retries": 0,
+                "error": str(exc),
+            }
+
+        status: Dict[str, Any]
+        if isinstance(save_result, dict):
+            status = {
+                "ok": bool(save_result.get("ok", False)),
+                "attempts": int(save_result.get("attempts", 1)),
+                "retries": int(save_result.get("retries", 0)),
+                "error": str(save_result.get("error", "")),
+                "timestamp": datetime.now().isoformat(),
+            }
+        else:
+            status = {
+                "ok": bool(save_result is not False),
+                "attempts": 1,
+                "retries": 0,
+                "error": "" if save_result is not False else "save_returned_false",
+                "timestamp": datetime.now().isoformat(),
+            }
+
+        self._last_persist_status = status
+        if not status["ok"]:
+            print(
+                "[ACE Memory] Warning: Failed to persist memory state to Neo4j "
+                f"(retries={status['retries']}, error={status['error']})",
+                flush = True,
+            )
+            if raise_on_failure:
+                raise RuntimeError(status["error"] or "neo4j_save_failed")
+        return status
 
     def apply_delta(self, delta: DeltaUpdate):
         has_changes = bool(
@@ -619,7 +662,7 @@ class ACEMemory:
                 self._unregister_bullet(bullet_id)
 
         self._refine()
-        self._save_memory()
+        return self._save_memory()
 
     def _refine(self):
         self._deduplicate_bullets()

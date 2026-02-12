@@ -7,12 +7,12 @@ Usage:
     python -m benchmark.infer_ace_direct_v3 \
         --max-samples 200 \
         --seed 42 \
-        --manifest benchmark/results/subset_manifest_v3_seed42_n200.json \
+        --manifest benchmark/results/v3/subset_manifest_v3_seed42_n200.json \
         --qg-gate-score-min 0.65 \
         --qg-lesson-score-min 0.60 \
         --qg-overlap-min 0.10 \
         --qg-max-accepted-lessons 2 \
-        --output benchmark/results/ace_v3.jsonl
+        --output benchmark/results/v3/ace_v3.jsonl
 """
 
 import argparse
@@ -243,7 +243,7 @@ def main():
     default_qg = QualityGateConfig.from_env()
 
     parser = argparse.ArgumentParser(description = "CL-bench ACE Direct V3 Inference")
-    parser.add_argument("--output", type = str, default = "benchmark/results/ace_v3.jsonl")
+    parser.add_argument("--output", type = str, default = "benchmark/results/v3/ace_v3.jsonl")
     parser.add_argument("--max-samples", type = int, default = None)
     parser.add_argument("--seed", type = int, default = 42)
     parser.add_argument("--manifest", type = str, default = None)

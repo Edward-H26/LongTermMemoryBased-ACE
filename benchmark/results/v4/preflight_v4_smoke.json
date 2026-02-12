@@ -1,0 +1,192 @@
+{
+  "generated_at": "2026-02-11T17:27:06.266933+00:00",
+  "preflight_mode": "smoke",
+  "status": "failed",
+  "blocking_issues": [
+    "inference_failed baseline_code=1, ace_code=1"
+  ],
+  "warnings": [],
+  "config": {
+    "manifest": "benchmark/results/subset_manifest_v4_seed42_n200.json",
+    "max_samples": 200,
+    "seed": 42,
+    "sampling_strategy": "context_dense",
+    "memory_scope": "hybrid",
+    "smoke_samples": 3,
+    "smoke_output_dir": "benchmark/results/smoke_v4_seed42_n3",
+    "estimate_source": "auto",
+    "context_workers": 6,
+    "step_scoring_mode": "near_full",
+    "step_score_workers": 8
+  },
+  "static_checks": {
+    "checks": [
+      {
+        "name": "max_samples",
+        "ok": true,
+        "detail": "max_samples=200"
+      },
+      {
+        "name": "smoke_samples",
+        "ok": true,
+        "detail": "smoke_samples=3"
+      },
+      {
+        "name": "sampling_strategy",
+        "ok": true,
+        "detail": "context_dense"
+      },
+      {
+        "name": "memory_scope",
+        "ok": true,
+        "detail": "hybrid"
+      },
+      {
+        "name": "required_env",
+        "ok": true,
+        "detail": "all present"
+      },
+      {
+        "name": "benchmark_modules",
+        "ok": true,
+        "detail": "all importable"
+      },
+      {
+        "name": "runtime_packages",
+        "ok": true,
+        "detail": "all importable"
+      },
+      {
+        "name": "manifest_path",
+        "ok": true,
+        "detail": "manifest will be created"
+      },
+      {
+        "name": "output_dir",
+        "ok": true,
+        "detail": "output_dir=benchmark/results"
+      },
+      {
+        "name": "connectivity_probes",
+        "ok": true,
+        "detail": "optional probes skipped in static mode"
+      }
+    ],
+    "blocking_issues": [],
+    "warnings": [],
+    "status": "ok"
+  },
+  "estimate": {
+    "source": {
+      "selected": "v3",
+      "path": "benchmark/results/comparison_report_v3.json"
+    },
+    "target_samples": 200,
+    "phases": {
+      "inference": {
+        "cost_usd": 13.231563750000001,
+        "wall_seconds": 4896.22073828592,
+        "baseline_prompt_tokens": 2001663.0,
+        "baseline_completion_tokens": 418535.99999999994,
+        "ace_prompt_tokens": 2028164.0,
+        "ace_completion_tokens": 400892.0
+      },
+      "step_scoring_overhead": {
+        "cost_usd": 2.5758,
+        "wall_seconds": 143.1,
+        "mode": "near_full",
+        "total_llm_step_calls": 3816.0,
+        "non_empty_rate": 0.795,
+        "mean_steps": 30.138364779874212,
+        "llm_steps_per_non_empty": 24.0
+      },
+      "evaluation": {
+        "cost_usd": 2.5,
+        "wall_seconds": 4200.0
+      },
+      "error_analysis": {
+        "cost_usd": 1.3157999999999999,
+        "wall_seconds": 1232.0,
+        "baseline_failed_est": 176.0,
+        "ace_failed_est": 168.0
+      },
+      "compare": {
+        "cost_usd": 0.0,
+        "wall_seconds": 8.0
+      }
+    },
+    "totals": {
+      "base": {
+        "cost_usd": 19.62316375,
+        "wall_seconds": 10479.32073828592
+      },
+      "low": {
+        "cost_usd": 15.698531000000001,
+        "wall_seconds": 8383.456590628737
+      },
+      "high": {
+        "cost_usd": 26.4912710625,
+        "wall_seconds": 14671.049033600288
+      }
+    },
+    "assumptions": [
+      "Estimates scaled by ratio=1.0000 from source tasks to target tasks.",
+      "Eval stage assumes 21.0s per task per side in parallel.",
+      "Error stage assumes 7.0s per failed task per side in parallel.",
+      "Step scoring assumes prompt=220 and completion=40 tokens per scored step.",
+      "Step scoring assumes 1.8s latency per verifier call with 8 step workers.",
+      "Context parallelism factor for step overhead capped at 6.0."
+    ],
+    "step_inputs": {
+      "mean_steps": 30.138364779874212,
+      "non_empty_rate": 0.795,
+      "source_paths": [
+        "benchmark/results/ace_v3.jsonl",
+        "benchmark/results/ace_v3_graded.jsonl"
+      ],
+      "fallback_used": false,
+      "sample_size": 200
+    }
+  },
+  "smoke": {
+    "status": "failed",
+    "error": "inference_failed baseline_code=1, ace_code=1",
+    "commands": {
+      "baseline": [
+        "/opt/anaconda3/bin/python",
+        "-m",
+        "benchmark.infer_baseline_v4",
+        "--manifest",
+        "/Users/edwardhu/Desktop/INFO490/LongTermMemoryBasedSelfEvolvingAlgorithm/benchmark/results/smoke_v4_seed42_n3/subset_manifest_v4_seed42_n3.json",
+        "--max-samples",
+        "3",
+        "--seed",
+        "42",
+        "--sampling-strategy",
+        "context_dense",
+        "--output",
+        "/Users/edwardhu/Desktop/INFO490/LongTermMemoryBasedSelfEvolvingAlgorithm/benchmark/results/smoke_v4_seed42_n3/baseline_v4.jsonl",
+        "--no-clear-results"
+      ],
+      "ace": [
+        "/opt/anaconda3/bin/python",
+        "-m",
+        "benchmark.infer_ace_direct_v4",
+        "--manifest",
+        "/Users/edwardhu/Desktop/INFO490/LongTermMemoryBasedSelfEvolvingAlgorithm/benchmark/results/smoke_v4_seed42_n3/subset_manifest_v4_seed42_n3.json",
+        "--max-samples",
+        "3",
+        "--seed",
+        "42",
+        "--sampling-strategy",
+        "context_dense",
+        "--memory-scope",
+        "hybrid",
+        "--output",
+        "/Users/edwardhu/Desktop/INFO490/LongTermMemoryBasedSelfEvolvingAlgorithm/benchmark/results/smoke_v4_seed42_n3/ace_v4.jsonl",
+        "--no-clear-results",
+        "--no-clear-db"
+      ]
+    }
+  }
+}

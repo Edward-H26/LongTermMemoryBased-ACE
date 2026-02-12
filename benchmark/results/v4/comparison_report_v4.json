@@ -1,0 +1,188 @@
+{
+  "baseline_solving_rates": {
+    "overall": 20.5,
+    "total": 200,
+    "score_1": 41,
+    "categories": {
+      "Procedural Task Execution": 14.893617021276595,
+      "Rule System Application": 27.419354838709676,
+      "Domain Knowledge Reasoning": 18.823529411764707,
+      "Empirical Discovery & Simulation": 16.666666666666664
+    },
+    "category_counts": {
+      "Procedural Task Execution": 47,
+      "Rule System Application": 62,
+      "Domain Knowledge Reasoning": 85,
+      "Empirical Discovery & Simulation": 6
+    }
+  },
+  "ace_solving_rates": {
+    "overall": 23.5,
+    "total": 200,
+    "score_1": 47,
+    "categories": {
+      "Procedural Task Execution": 19.148936170212767,
+      "Rule System Application": 22.58064516129032,
+      "Domain Knowledge Reasoning": 25.882352941176475,
+      "Empirical Discovery & Simulation": 33.33333333333333
+    },
+    "category_counts": {
+      "Procedural Task Execution": 47,
+      "Rule System Application": 62,
+      "Domain Knowledge Reasoning": 85,
+      "Empirical Discovery & Simulation": 6
+    }
+  },
+  "baseline_error_distribution": {
+    "CONTEXT_IGNORED": 65.5,
+    "CONTEXT_MISUSED": 6.0,
+    "FORMAT_ERROR": 41.5,
+    "REFUSAL": 1.5
+  },
+  "ace_error_distribution": {
+    "CONTEXT_IGNORED": 65.5,
+    "CONTEXT_MISUSED": 6.5,
+    "FORMAT_ERROR": 40.0,
+    "REFUSAL": 2.5
+  },
+  "baseline_metrics": {
+    "avg_latency_ms": 39816.70449751313,
+    "p50_latency_ms": 23829.639749834314,
+    "p95_latency_ms": 101447.08458310924,
+    "avg_tokens": 11063.655,
+    "avg_prompt_tokens": 8759.1,
+    "avg_completion_tokens": 2304.555,
+    "total_tokens": 2212731,
+    "total_prompt_tokens": 1751820,
+    "total_completion_tokens": 460911,
+    "cost_usd": 6.798885
+  },
+  "ace_metrics": {
+    "avg_latency_ms": 33735.52374105435,
+    "p50_latency_ms": 21408.30508293584,
+    "p95_latency_ms": 95416.87887511216,
+    "avg_tokens": 11266.45,
+    "avg_prompt_tokens": 8916.08,
+    "avg_completion_tokens": 2350.37,
+    "total_tokens": 2253290,
+    "total_prompt_tokens": 1783216,
+    "total_completion_tokens": 470074,
+    "cost_usd": 6.92976
+  },
+  "baseline_category_metrics": {
+    "Procedural Task Execution": {
+      "avg_latency_ms": 48483.90277836749,
+      "p50_latency_ms": 37833.02912511863,
+      "p95_latency_ms": 108759.15766693652,
+      "avg_tokens": 12546.08510638298,
+      "avg_prompt_tokens": 9083.872340425532,
+      "avg_completion_tokens": 3462.2127659574467,
+      "total_tokens": 589666,
+      "total_prompt_tokens": 426942,
+      "total_completion_tokens": 162724,
+      "cost_usd": 2.1609175
+    },
+    "Rule System Application": {
+      "avg_latency_ms": 20573.410158000526,
+      "p50_latency_ms": 13452.641749987379,
+      "p95_latency_ms": 84815.43562514707,
+      "avg_tokens": 8122.951612903225,
+      "avg_prompt_tokens": 6774.693548387097,
+      "avg_completion_tokens": 1348.258064516129,
+      "total_tokens": 503623,
+      "total_prompt_tokens": 420031,
+      "total_completion_tokens": 83592,
+      "cost_usd": 1.36095875
+    },
+    "Domain Knowledge Reasoning": {
+      "avg_latency_ms": 34718.52107007769,
+      "p50_latency_ms": 22644.566082861274,
+      "p95_latency_ms": 89593.07987499051,
+      "avg_tokens": 11198.905882352941,
+      "avg_prompt_tokens": 8861.2,
+      "avg_completion_tokens": 2337.705882352941,
+      "total_tokens": 951907,
+      "total_prompt_tokens": 753202,
+      "total_completion_tokens": 198705,
+      "cost_usd": 2.9285525
+    },
+    "Empirical Discovery & Simulation": {
+      "avg_latency_ms": 242995.2913611196,
+      "p50_latency_ms": 46914.54654186964,
+      "p95_latency_ms": 1239957.960249856,
+      "avg_tokens": 27922.5,
+      "avg_prompt_tokens": 25274.166666666668,
+      "avg_completion_tokens": 2648.3333333333335,
+      "total_tokens": 167535,
+      "total_prompt_tokens": 151645,
+      "total_completion_tokens": 15890,
+      "cost_usd": 0.34845625
+    }
+  },
+  "ace_category_metrics": {
+    "Procedural Task Execution": {
+      "avg_latency_ms": 49030.33688302806,
+      "p50_latency_ms": 29467.1040000394,
+      "p95_latency_ms": 179196.7329988256,
+      "avg_tokens": 13092.787234042553,
+      "avg_prompt_tokens": 9322.170212765957,
+      "avg_completion_tokens": 3770.6170212765956,
+      "total_tokens": 615361,
+      "total_prompt_tokens": 438142,
+      "total_completion_tokens": 177219,
+      "cost_usd": 2.3198675
+    },
+    "Rule System Application": {
+      "avg_latency_ms": 25840.713358232602,
+      "p50_latency_ms": 11524.433582788333,
+      "p95_latency_ms": 78916.36591707356,
+      "avg_tokens": 8258.564516129032,
+      "avg_prompt_tokens": 6906.693548387097,
+      "avg_completion_tokens": 1351.8709677419354,
+      "total_tokens": 512031,
+      "total_prompt_tokens": 428215,
+      "total_completion_tokens": 83816,
+      "cost_usd": 1.37342875
+    },
+    "Domain Knowledge Reasoning": {
+      "avg_latency_ms": 30771.112071054384,
+      "p50_latency_ms": 19929.627749836072,
+      "p95_latency_ms": 90617.25491704419,
+      "avg_tokens": 11287.882352941177,
+      "avg_prompt_tokens": 8993.2,
+      "avg_completion_tokens": 2294.6823529411763,
+      "total_tokens": 959470,
+      "total_prompt_tokens": 764422,
+      "total_completion_tokens": 195048,
+      "cost_usd": 2.9060075000000003
+    },
+    "Empirical Discovery & Simulation": {
+      "avg_latency_ms": 37501.69340975117,
+      "p50_latency_ms": 35905.06529202685,
+      "p95_latency_ms": 74192.24041583948,
+      "avg_tokens": 27738.0,
+      "avg_prompt_tokens": 25406.166666666668,
+      "avg_completion_tokens": 2331.8333333333335,
+      "total_tokens": 166428,
+      "total_prompt_tokens": 152437,
+      "total_completion_tokens": 13991,
+      "cost_usd": 0.33045625
+    }
+  },
+  "baseline_v4_diagnostics": {
+    "carryover_coverage_pct": 0.0,
+    "learned_retrieval_rate": 0.0,
+    "capped_output_rate_pct": 1.0,
+    "mean_step_score": 0.0,
+    "quality_gate_apply_rate_pct": 0.0,
+    "num_rows": 200
+  },
+  "ace_v4_diagnostics": {
+    "carryover_coverage_pct": 0.0,
+    "learned_retrieval_rate": 0.0,
+    "capped_output_rate_pct": 1.5,
+    "mean_step_score": 0.6222317014815691,
+    "quality_gate_apply_rate_pct": 18.0,
+    "num_rows": 200
+  }
+}

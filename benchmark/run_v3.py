@@ -6,7 +6,7 @@ Clears results and Neo4j database by default. Use --no-clear-results and
 
 Usage:
     python -m benchmark.run_v3 \
-        --manifest benchmark/results/subset_manifest_v3_seed42_n200.json \
+        --manifest benchmark/results/v3/subset_manifest_v3_seed42_n200.json \
         --max-samples 200 \
         --seed 42
 """
@@ -38,10 +38,10 @@ def clear_neo4j_all():
 
 def main():
     parser = argparse.ArgumentParser(description="CL-bench V3: Parallel baseline + ACE inference")
-    parser.add_argument("--manifest", type=str, default="benchmark/results/subset_manifest_v3_seed42_n200.json")
+    parser.add_argument("--manifest", type=str, default="benchmark/results/v3/subset_manifest_v3_seed42_n200.json")
     parser.add_argument("--max-samples", type=int, default=200)
     parser.add_argument("--seed", type=int, default=42)
-    parser.add_argument("--output-dir", type=str, default="benchmark/results")
+    parser.add_argument("--output-dir", type=str, default="benchmark/results/v3")
     parser.add_argument(
         "--clear-results",
         action=argparse.BooleanOptionalAction,

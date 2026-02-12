@@ -1,0 +1,1030 @@
+{
+  "summary": {
+    "total_calls": 113,
+    "total_prompt_tokens": 419316,
+    "total_completion_tokens": 8714,
+    "total_tokens": 428030,
+    "avg_latency_ms": 2074.96127799005,
+    "median_latency_ms": 1615.9589169546962,
+    "p95_latency_ms": 5701.240708120167
+  },
+  "records": [
+    {
+      "task_id": "",
+      "prompt_tokens": 7845,
+      "completion_tokens": 470,
+      "total_tokens": 8315,
+      "latency_ms": 7061.1803331412375,
+      "backend": "gemini",
+      "model": "gemini-3-flash-preview"
+    },
+    {
+      "task_id": "",
+      "prompt_tokens": 6662,
+      "completion_tokens": 49,
+      "total_tokens": 6711,
+      "latency_ms": 1569.3725000601262,
+      "backend": "openai",
+      "model": "gpt-5.1"
+    },
+    {
+      "task_id": "",
+      "prompt_tokens": 6664,
+      "completion_tokens": 52,
+      "total_tokens": 6716,
+      "latency_ms": 1696.2722090538591,
+      "backend": "openai",
+      "model": "gpt-5.1"
+    },
+    {
+      "task_id": "",
+      "prompt_tokens": 6661,
+      "completion_tokens": 53,
+      "total_tokens": 6714,
+      "latency_ms": 1737.8647499717772,
+      "backend": "openai",
+      "model": "gpt-5.1"
+    },
+    {
+      "task_id": "",
+      "prompt_tokens": 6664,
+      "completion_tokens": 55,
+      "total_tokens": 6719,
+      "latency_ms": 2066.9171661138535,
+      "backend": "openai",
+      "model": "gpt-5.1"
+    },
+    {
+      "task_id": "",
+      "prompt_tokens": 6669,
+      "completion_tokens": 60,
+      "total_tokens": 6729,
+      "latency_ms": 2135.186791885644,
+      "backend": "openai",
+      "model": "gpt-5.1"
+    },
+    {
+      "task_id": "",
+      "prompt_tokens": 6670,
+      "completion_tokens": 56,
+      "total_tokens": 6726,
+      "latency_ms": 2220.67983308807,
+      "backend": "openai",
+      "model": "gpt-5.1"
+    },
+    {
+      "task_id": "",
+      "prompt_tokens": 6661,
+      "completion_tokens": 66,
+      "total_tokens": 6727,
+      "latency_ms": 2429.7302500344813,
+      "backend": "openai",
+      "model": "gpt-5.1"
+    },
+    {
+      "task_id": "",
+      "prompt_tokens": 6647,
+      "completion_tokens": 66,
+      "total_tokens": 6713,
+      "latency_ms": 2584.4238330610096,
+      "backend": "openai",
+      "model": "gpt-5.1"
+    },
+    {
+      "task_id": "",
+      "prompt_tokens": 6655,
+      "completion_tokens": 51,
+      "total_tokens": 6706,
+      "latency_ms": 1249.0398329682648,
+      "backend": "openai",
+      "model": "gpt-5.1"
+    },
+    {
+      "task_id": "",
+      "prompt_tokens": 6652,
+      "completion_tokens": 59,
+      "total_tokens": 6711,
+      "latency_ms": 1508.6107500828803,
+      "backend": "openai",
+      "model": "gpt-5.1"
+    },
+    {
+      "task_id": "",
+      "prompt_tokens": 6648,
+      "completion_tokens": 54,
+      "total_tokens": 6702,
+      "latency_ms": 2191.597957862541,
+      "backend": "openai",
+      "model": "gpt-5.1"
+    },
+    {
+      "task_id": "",
+      "prompt_tokens": 6650,
+      "completion_tokens": 63,
+      "total_tokens": 6713,
+      "latency_ms": 2223.0202918872237,
+      "backend": "openai",
+      "model": "gpt-5.1"
+    },
+    {
+      "task_id": "",
+      "prompt_tokens": 6645,
+      "completion_tokens": 47,
+      "total_tokens": 6692,
+      "latency_ms": 2227.9962089378387,
+      "backend": "openai",
+      "model": "gpt-5.1"
+    },
+    {
+      "task_id": "",
+      "prompt_tokens": 6640,
+      "completion_tokens": 65,
+      "total_tokens": 6705,
+      "latency_ms": 3081.0831249691546,
+      "backend": "openai",
+      "model": "gpt-5.1"
+    },
+    {
+      "task_id": "",
+      "prompt_tokens": 6645,
+      "completion_tokens": 64,
+      "total_tokens": 6709,
+      "latency_ms": 2628.5499590449035,
+      "backend": "openai",
+      "model": "gpt-5.1"
+    },
+    {
+      "task_id": "",
+      "prompt_tokens": 6640,
+      "completion_tokens": 53,
+      "total_tokens": 6693,
+      "latency_ms": 2470.706959022209,
+      "backend": "openai",
+      "model": "gpt-5.1"
+    },
+    {
+      "task_id": "",
+      "prompt_tokens": 6667,
+      "completion_tokens": 62,
+      "total_tokens": 6729,
+      "latency_ms": 3827.853542054072,
+      "backend": "openai",
+      "model": "gpt-5.1"
+    },
+    {
+      "task_id": "",
+      "prompt_tokens": 6660,
+      "completion_tokens": 50,
+      "total_tokens": 6710,
+      "latency_ms": 1615.9589169546962,
+      "backend": "openai",
+      "model": "gpt-5.1"
+    },
+    {
+      "task_id": "",
+      "prompt_tokens": 6648,
+      "completion_tokens": 53,
+      "total_tokens": 6701,
+      "latency_ms": 1358.3915838971734,
+      "backend": "openai",
+      "model": "gpt-5.1"
+    },
+    {
+      "task_id": "",
+      "prompt_tokens": 6637,
+      "completion_tokens": 64,
+      "total_tokens": 6701,
+      "latency_ms": 2470.2884999569505,
+      "backend": "openai",
+      "model": "gpt-5.1"
+    },
+    {
+      "task_id": "",
+      "prompt_tokens": 6665,
+      "completion_tokens": 61,
+      "total_tokens": 6726,
+      "latency_ms": 2515.289041912183,
+      "backend": "openai",
+      "model": "gpt-5.1"
+    },
+    {
+      "task_id": "",
+      "prompt_tokens": 6655,
+      "completion_tokens": 48,
+      "total_tokens": 6703,
+      "latency_ms": 1085.8084170613438,
+      "backend": "openai",
+      "model": "gpt-5.1"
+    },
+    {
+      "task_id": "",
+      "prompt_tokens": 6655,
+      "completion_tokens": 45,
+      "total_tokens": 6700,
+      "latency_ms": 1393.7434160616249,
+      "backend": "openai",
+      "model": "gpt-5.1"
+    },
+    {
+      "task_id": "",
+      "prompt_tokens": 6648,
+      "completion_tokens": 58,
+      "total_tokens": 6706,
+      "latency_ms": 2132.4576248880476,
+      "backend": "openai",
+      "model": "gpt-5.1"
+    },
+    {
+      "task_id": "",
+      "prompt_tokens": 705,
+      "completion_tokens": 376,
+      "total_tokens": 1081,
+      "latency_ms": 5701.240708120167,
+      "backend": "gemini",
+      "model": "gemini-3-flash-preview"
+    },
+    {
+      "task_id": "",
+      "prompt_tokens": 204,
+      "completion_tokens": 50,
+      "total_tokens": 254,
+      "latency_ms": 1145.986583083868,
+      "backend": "openai",
+      "model": "gpt-5.1"
+    },
+    {
+      "task_id": "",
+      "prompt_tokens": 203,
+      "completion_tokens": 39,
+      "total_tokens": 242,
+      "latency_ms": 1227.4995830375701,
+      "backend": "openai",
+      "model": "gpt-5.1"
+    },
+    {
+      "task_id": "",
+      "prompt_tokens": 250,
+      "completion_tokens": 52,
+      "total_tokens": 302,
+      "latency_ms": 1342.750458046794,
+      "backend": "openai",
+      "model": "gpt-5.1"
+    },
+    {
+      "task_id": "",
+      "prompt_tokens": 203,
+      "completion_tokens": 50,
+      "total_tokens": 253,
+      "latency_ms": 1458.2526669837534,
+      "backend": "openai",
+      "model": "gpt-5.1"
+    },
+    {
+      "task_id": "",
+      "prompt_tokens": 223,
+      "completion_tokens": 70,
+      "total_tokens": 293,
+      "latency_ms": 1456.9775410927832,
+      "backend": "openai",
+      "model": "gpt-5.1"
+    },
+    {
+      "task_id": "",
+      "prompt_tokens": 204,
+      "completion_tokens": 56,
+      "total_tokens": 260,
+      "latency_ms": 1510.5305828619748,
+      "backend": "openai",
+      "model": "gpt-5.1"
+    },
+    {
+      "task_id": "",
+      "prompt_tokens": 228,
+      "completion_tokens": 57,
+      "total_tokens": 285,
+      "latency_ms": 1524.4297080207616,
+      "backend": "openai",
+      "model": "gpt-5.1"
+    },
+    {
+      "task_id": "",
+      "prompt_tokens": 202,
+      "completion_tokens": 88,
+      "total_tokens": 290,
+      "latency_ms": 1713.767500128597,
+      "backend": "openai",
+      "model": "gpt-5.1"
+    },
+    {
+      "task_id": "",
+      "prompt_tokens": 254,
+      "completion_tokens": 51,
+      "total_tokens": 305,
+      "latency_ms": 996.4132078457624,
+      "backend": "openai",
+      "model": "gpt-5.1"
+    },
+    {
+      "task_id": "",
+      "prompt_tokens": 217,
+      "completion_tokens": 55,
+      "total_tokens": 272,
+      "latency_ms": 1214.4826247822493,
+      "backend": "openai",
+      "model": "gpt-5.1"
+    },
+    {
+      "task_id": "",
+      "prompt_tokens": 221,
+      "completion_tokens": 64,
+      "total_tokens": 285,
+      "latency_ms": 1337.6741670072079,
+      "backend": "openai",
+      "model": "gpt-5.1"
+    },
+    {
+      "task_id": "",
+      "prompt_tokens": 218,
+      "completion_tokens": 47,
+      "total_tokens": 265,
+      "latency_ms": 1151.1615000199527,
+      "backend": "openai",
+      "model": "gpt-5.1"
+    },
+    {
+      "task_id": "",
+      "prompt_tokens": 241,
+      "completion_tokens": 54,
+      "total_tokens": 295,
+      "latency_ms": 1274.9924170784652,
+      "backend": "openai",
+      "model": "gpt-5.1"
+    },
+    {
+      "task_id": "",
+      "prompt_tokens": 212,
+      "completion_tokens": 80,
+      "total_tokens": 292,
+      "latency_ms": 1626.6419580206275,
+      "backend": "openai",
+      "model": "gpt-5.1"
+    },
+    {
+      "task_id": "",
+      "prompt_tokens": 14656,
+      "completion_tokens": 536,
+      "total_tokens": 15192,
+      "latency_ms": 8788.924584165215,
+      "backend": "gemini",
+      "model": "gemini-3-flash-preview"
+    },
+    {
+      "task_id": "",
+      "prompt_tokens": 9173,
+      "completion_tokens": 61,
+      "total_tokens": 9234,
+      "latency_ms": 2098.4148748684675,
+      "backend": "openai",
+      "model": "gpt-5.1"
+    },
+    {
+      "task_id": "",
+      "prompt_tokens": 9167,
+      "completion_tokens": 61,
+      "total_tokens": 9228,
+      "latency_ms": 2249.8186249285936,
+      "backend": "openai",
+      "model": "gpt-5.1"
+    },
+    {
+      "task_id": "",
+      "prompt_tokens": 9173,
+      "completion_tokens": 78,
+      "total_tokens": 9251,
+      "latency_ms": 2295.3914999961853,
+      "backend": "openai",
+      "model": "gpt-5.1"
+    },
+    {
+      "task_id": "",
+      "prompt_tokens": 9164,
+      "completion_tokens": 57,
+      "total_tokens": 9221,
+      "latency_ms": 2411.925666965544,
+      "backend": "openai",
+      "model": "gpt-5.1"
+    },
+    {
+      "task_id": "",
+      "prompt_tokens": 9169,
+      "completion_tokens": 45,
+      "total_tokens": 9214,
+      "latency_ms": 2406.1604999005795,
+      "backend": "openai",
+      "model": "gpt-5.1"
+    },
+    {
+      "task_id": "",
+      "prompt_tokens": 9182,
+      "completion_tokens": 61,
+      "total_tokens": 9243,
+      "latency_ms": 2426.416166126728,
+      "backend": "openai",
+      "model": "gpt-5.1"
+    },
+    {
+      "task_id": "",
+      "prompt_tokens": 9189,
+      "completion_tokens": 85,
+      "total_tokens": 9274,
+      "latency_ms": 2982.138665858656,
+      "backend": "openai",
+      "model": "gpt-5.1"
+    },
+    {
+      "task_id": "",
+      "prompt_tokens": 9182,
+      "completion_tokens": 73,
+      "total_tokens": 9255,
+      "latency_ms": 3005.165875190869,
+      "backend": "openai",
+      "model": "gpt-5.1"
+    },
+    {
+      "task_id": "",
+      "prompt_tokens": 9169,
+      "completion_tokens": 59,
+      "total_tokens": 9228,
+      "latency_ms": 1471.5257089119405,
+      "backend": "openai",
+      "model": "gpt-5.1"
+    },
+    {
+      "task_id": "",
+      "prompt_tokens": 9184,
+      "completion_tokens": 63,
+      "total_tokens": 9247,
+      "latency_ms": 1463.1117500830442,
+      "backend": "openai",
+      "model": "gpt-5.1"
+    },
+    {
+      "task_id": "",
+      "prompt_tokens": 9171,
+      "completion_tokens": 58,
+      "total_tokens": 9229,
+      "latency_ms": 1422.4183331243694,
+      "backend": "openai",
+      "model": "gpt-5.1"
+    },
+    {
+      "task_id": "",
+      "prompt_tokens": 9177,
+      "completion_tokens": 65,
+      "total_tokens": 9242,
+      "latency_ms": 1546.1024581454694,
+      "backend": "openai",
+      "model": "gpt-5.1"
+    },
+    {
+      "task_id": "",
+      "prompt_tokens": 9162,
+      "completion_tokens": 56,
+      "total_tokens": 9218,
+      "latency_ms": 1800.948791904375,
+      "backend": "openai",
+      "model": "gpt-5.1"
+    },
+    {
+      "task_id": "",
+      "prompt_tokens": 9171,
+      "completion_tokens": 60,
+      "total_tokens": 9231,
+      "latency_ms": 1669.3162091542035,
+      "backend": "openai",
+      "model": "gpt-5.1"
+    },
+    {
+      "task_id": "",
+      "prompt_tokens": 9167,
+      "completion_tokens": 61,
+      "total_tokens": 9228,
+      "latency_ms": 1274.804832879454,
+      "backend": "openai",
+      "model": "gpt-5.1"
+    },
+    {
+      "task_id": "",
+      "prompt_tokens": 9175,
+      "completion_tokens": 66,
+      "total_tokens": 9241,
+      "latency_ms": 1480.7812499348074,
+      "backend": "openai",
+      "model": "gpt-5.1"
+    },
+    {
+      "task_id": "",
+      "prompt_tokens": 9174,
+      "completion_tokens": 45,
+      "total_tokens": 9219,
+      "latency_ms": 1155.7402501348406,
+      "backend": "openai",
+      "model": "gpt-5.1"
+    },
+    {
+      "task_id": "",
+      "prompt_tokens": 9181,
+      "completion_tokens": 61,
+      "total_tokens": 9242,
+      "latency_ms": 1929.8197499010712,
+      "backend": "openai",
+      "model": "gpt-5.1"
+    },
+    {
+      "task_id": "",
+      "prompt_tokens": 9178,
+      "completion_tokens": 75,
+      "total_tokens": 9253,
+      "latency_ms": 1640.7854999415576,
+      "backend": "openai",
+      "model": "gpt-5.1"
+    },
+    {
+      "task_id": "",
+      "prompt_tokens": 9169,
+      "completion_tokens": 80,
+      "total_tokens": 9249,
+      "latency_ms": 2747.5288750138134,
+      "backend": "openai",
+      "model": "gpt-5.1"
+    },
+    {
+      "task_id": "",
+      "prompt_tokens": 9173,
+      "completion_tokens": 72,
+      "total_tokens": 9245,
+      "latency_ms": 2946.920290822163,
+      "backend": "openai",
+      "model": "gpt-5.1"
+    },
+    {
+      "task_id": "",
+      "prompt_tokens": 9189,
+      "completion_tokens": 70,
+      "total_tokens": 9259,
+      "latency_ms": 3338.856999995187,
+      "backend": "openai",
+      "model": "gpt-5.1"
+    },
+    {
+      "task_id": "",
+      "prompt_tokens": 9162,
+      "completion_tokens": 75,
+      "total_tokens": 9237,
+      "latency_ms": 3498.1587920337915,
+      "backend": "openai",
+      "model": "gpt-5.1"
+    },
+    {
+      "task_id": "",
+      "prompt_tokens": 9171,
+      "completion_tokens": 50,
+      "total_tokens": 9221,
+      "latency_ms": 2989.1250408254564,
+      "backend": "openai",
+      "model": "gpt-5.1"
+    },
+    {
+      "task_id": "",
+      "prompt_tokens": 1252,
+      "completion_tokens": 109,
+      "total_tokens": 1361,
+      "latency_ms": 12626.015624962747,
+      "backend": "gemini",
+      "model": "gemini-3-flash-preview"
+    },
+    {
+      "task_id": "",
+      "prompt_tokens": 1380,
+      "completion_tokens": 330,
+      "total_tokens": 1710,
+      "latency_ms": 6458.864208078012,
+      "backend": "gemini",
+      "model": "gemini-3-flash-preview"
+    },
+    {
+      "task_id": "",
+      "prompt_tokens": 149,
+      "completion_tokens": 55,
+      "total_tokens": 204,
+      "latency_ms": 1064.2901670653373,
+      "backend": "openai",
+      "model": "gpt-5.1"
+    },
+    {
+      "task_id": "",
+      "prompt_tokens": 173,
+      "completion_tokens": 52,
+      "total_tokens": 225,
+      "latency_ms": 1062.7804999239743,
+      "backend": "openai",
+      "model": "gpt-5.1"
+    },
+    {
+      "task_id": "",
+      "prompt_tokens": 163,
+      "completion_tokens": 57,
+      "total_tokens": 220,
+      "latency_ms": 1133.6348331533372,
+      "backend": "openai",
+      "model": "gpt-5.1"
+    },
+    {
+      "task_id": "",
+      "prompt_tokens": 192,
+      "completion_tokens": 66,
+      "total_tokens": 258,
+      "latency_ms": 1228.4763329662383,
+      "backend": "openai",
+      "model": "gpt-5.1"
+    },
+    {
+      "task_id": "",
+      "prompt_tokens": 155,
+      "completion_tokens": 61,
+      "total_tokens": 216,
+      "latency_ms": 1466.9504589401186,
+      "backend": "openai",
+      "model": "gpt-5.1"
+    },
+    {
+      "task_id": "",
+      "prompt_tokens": 166,
+      "completion_tokens": 84,
+      "total_tokens": 250,
+      "latency_ms": 1759.4082090072334,
+      "backend": "openai",
+      "model": "gpt-5.1"
+    },
+    {
+      "task_id": "",
+      "prompt_tokens": 222,
+      "completion_tokens": 82,
+      "total_tokens": 304,
+      "latency_ms": 1736.207792069763,
+      "backend": "openai",
+      "model": "gpt-5.1"
+    },
+    {
+      "task_id": "",
+      "prompt_tokens": 155,
+      "completion_tokens": 61,
+      "total_tokens": 216,
+      "latency_ms": 1001.3260000851005,
+      "backend": "openai",
+      "model": "gpt-5.1"
+    },
+    {
+      "task_id": "",
+      "prompt_tokens": 204,
+      "completion_tokens": 101,
+      "total_tokens": 305,
+      "latency_ms": 2283.0676671583205,
+      "backend": "openai",
+      "model": "gpt-5.1"
+    },
+    {
+      "task_id": "",
+      "prompt_tokens": 160,
+      "completion_tokens": 53,
+      "total_tokens": 213,
+      "latency_ms": 1149.9017500318587,
+      "backend": "openai",
+      "model": "gpt-5.1"
+    },
+    {
+      "task_id": "",
+      "prompt_tokens": 248,
+      "completion_tokens": 68,
+      "total_tokens": 316,
+      "latency_ms": 1591.274208156392,
+      "backend": "openai",
+      "model": "gpt-5.1"
+    },
+    {
+      "task_id": "",
+      "prompt_tokens": 186,
+      "completion_tokens": 66,
+      "total_tokens": 252,
+      "latency_ms": 1645.3702920116484,
+      "backend": "openai",
+      "model": "gpt-5.1"
+    },
+    {
+      "task_id": "",
+      "prompt_tokens": 195,
+      "completion_tokens": 64,
+      "total_tokens": 259,
+      "latency_ms": 1238.770541967824,
+      "backend": "openai",
+      "model": "gpt-5.1"
+    },
+    {
+      "task_id": "",
+      "prompt_tokens": 156,
+      "completion_tokens": 58,
+      "total_tokens": 214,
+      "latency_ms": 1764.8727078922093,
+      "backend": "openai",
+      "model": "gpt-5.1"
+    },
+    {
+      "task_id": "",
+      "prompt_tokens": 156,
+      "completion_tokens": 66,
+      "total_tokens": 222,
+      "latency_ms": 1345.6462079193443,
+      "backend": "openai",
+      "model": "gpt-5.1"
+    },
+    {
+      "task_id": "",
+      "prompt_tokens": 160,
+      "completion_tokens": 51,
+      "total_tokens": 211,
+      "latency_ms": 1314.1363749746233,
+      "backend": "openai",
+      "model": "gpt-5.1"
+    },
+    {
+      "task_id": "",
+      "prompt_tokens": 161,
+      "completion_tokens": 78,
+      "total_tokens": 239,
+      "latency_ms": 2282.2893750853837,
+      "backend": "openai",
+      "model": "gpt-5.1"
+    },
+    {
+      "task_id": "",
+      "prompt_tokens": 163,
+      "completion_tokens": 69,
+      "total_tokens": 232,
+      "latency_ms": 1737.235666019842,
+      "backend": "openai",
+      "model": "gpt-5.1"
+    },
+    {
+      "task_id": "",
+      "prompt_tokens": 244,
+      "completion_tokens": 89,
+      "total_tokens": 333,
+      "latency_ms": 2319.0918748732656,
+      "backend": "openai",
+      "model": "gpt-5.1"
+    },
+    {
+      "task_id": "",
+      "prompt_tokens": 239,
+      "completion_tokens": 57,
+      "total_tokens": 296,
+      "latency_ms": 2208.4738339763135,
+      "backend": "openai",
+      "model": "gpt-5.1"
+    },
+    {
+      "task_id": "",
+      "prompt_tokens": 252,
+      "completion_tokens": 89,
+      "total_tokens": 341,
+      "latency_ms": 2073.6205831635743,
+      "backend": "openai",
+      "model": "gpt-5.1"
+    },
+    {
+      "task_id": "",
+      "prompt_tokens": 1736,
+      "completion_tokens": 367,
+      "total_tokens": 2103,
+      "latency_ms": 6959.692833013833,
+      "backend": "gemini",
+      "model": "gemini-3-flash-preview"
+    },
+    {
+      "task_id": "",
+      "prompt_tokens": 196,
+      "completion_tokens": 60,
+      "total_tokens": 256,
+      "latency_ms": 1037.9712500143796,
+      "backend": "openai",
+      "model": "gpt-5.1"
+    },
+    {
+      "task_id": "",
+      "prompt_tokens": 209,
+      "completion_tokens": 42,
+      "total_tokens": 251,
+      "latency_ms": 1074.21425008215,
+      "backend": "openai",
+      "model": "gpt-5.1"
+    },
+    {
+      "task_id": "",
+      "prompt_tokens": 179,
+      "completion_tokens": 67,
+      "total_tokens": 246,
+      "latency_ms": 1144.5421250537038,
+      "backend": "openai",
+      "model": "gpt-5.1"
+    },
+    {
+      "task_id": "",
+      "prompt_tokens": 193,
+      "completion_tokens": 56,
+      "total_tokens": 249,
+      "latency_ms": 1132.2094579227269,
+      "backend": "openai",
+      "model": "gpt-5.1"
+    },
+    {
+      "task_id": "",
+      "prompt_tokens": 198,
+      "completion_tokens": 55,
+      "total_tokens": 253,
+      "latency_ms": 1151.3748748693615,
+      "backend": "openai",
+      "model": "gpt-5.1"
+    },
+    {
+      "task_id": "",
+      "prompt_tokens": 208,
+      "completion_tokens": 44,
+      "total_tokens": 252,
+      "latency_ms": 1202.5442498270422,
+      "backend": "openai",
+      "model": "gpt-5.1"
+    },
+    {
+      "task_id": "",
+      "prompt_tokens": 192,
+      "completion_tokens": 44,
+      "total_tokens": 236,
+      "latency_ms": 1290.7525410410017,
+      "backend": "openai",
+      "model": "gpt-5.1"
+    },
+    {
+      "task_id": "",
+      "prompt_tokens": 227,
+      "completion_tokens": 54,
+      "total_tokens": 281,
+      "latency_ms": 1303.226624848321,
+      "backend": "openai",
+      "model": "gpt-5.1"
+    },
+    {
+      "task_id": "",
+      "prompt_tokens": 209,
+      "completion_tokens": 56,
+      "total_tokens": 265,
+      "latency_ms": 1375.23925001733,
+      "backend": "openai",
+      "model": "gpt-5.1"
+    },
+    {
+      "task_id": "",
+      "prompt_tokens": 209,
+      "completion_tokens": 51,
+      "total_tokens": 260,
+      "latency_ms": 1306.2741248868406,
+      "backend": "openai",
+      "model": "gpt-5.1"
+    },
+    {
+      "task_id": "",
+      "prompt_tokens": 191,
+      "completion_tokens": 52,
+      "total_tokens": 243,
+      "latency_ms": 1445.828832918778,
+      "backend": "openai",
+      "model": "gpt-5.1"
+    },
+    {
+      "task_id": "",
+      "prompt_tokens": 208,
+      "completion_tokens": 62,
+      "total_tokens": 270,
+      "latency_ms": 1231.665417086333,
+      "backend": "openai",
+      "model": "gpt-5.1"
+    },
+    {
+      "task_id": "",
+      "prompt_tokens": 208,
+      "completion_tokens": 60,
+      "total_tokens": 268,
+      "latency_ms": 1454.5406671240926,
+      "backend": "openai",
+      "model": "gpt-5.1"
+    },
+    {
+      "task_id": "",
+      "prompt_tokens": 211,
+      "completion_tokens": 54,
+      "total_tokens": 265,
+      "latency_ms": 1475.8550829719752,
+      "backend": "openai",
+      "model": "gpt-5.1"
+    },
+    {
+      "task_id": "",
+      "prompt_tokens": 206,
+      "completion_tokens": 64,
+      "total_tokens": 270,
+      "latency_ms": 1646.4965001214296,
+      "backend": "openai",
+      "model": "gpt-5.1"
+    },
+    {
+      "task_id": "",
+      "prompt_tokens": 192,
+      "completion_tokens": 60,
+      "total_tokens": 252,
+      "latency_ms": 1671.332540921867,
+      "backend": "openai",
+      "model": "gpt-5.1"
+    },
+    {
+      "task_id": "",
+      "prompt_tokens": 203,
+      "completion_tokens": 61,
+      "total_tokens": 264,
+      "latency_ms": 1079.1787910275161,
+      "backend": "openai",
+      "model": "gpt-5.1"
+    },
+    {
+      "task_id": "",
+      "prompt_tokens": 185,
+      "completion_tokens": 60,
+      "total_tokens": 245,
+      "latency_ms": 1251.9073749426752,
+      "backend": "openai",
+      "model": "gpt-5.1"
+    },
+    {
+      "task_id": "",
+      "prompt_tokens": 208,
+      "completion_tokens": 69,
+      "total_tokens": 277,
+      "latency_ms": 1325.0579580198973,
+      "backend": "openai",
+      "model": "gpt-5.1"
+    },
+    {
+      "task_id": "",
+      "prompt_tokens": 195,
+      "completion_tokens": 61,
+      "total_tokens": 256,
+      "latency_ms": 1165.2890830300748,
+      "backend": "openai",
+      "model": "gpt-5.1"
+    },
+    {
+      "task_id": "",
+      "prompt_tokens": 206,
+      "completion_tokens": 51,
+      "total_tokens": 257,
+      "latency_ms": 1424.032332841307,
+      "backend": "openai",
+      "model": "gpt-5.1"
+    },
+    {
+      "task_id": "",
+      "prompt_tokens": 223,
+      "completion_tokens": 58,
+      "total_tokens": 281,
+      "latency_ms": 1296.972791897133,
+      "backend": "openai",
+      "model": "gpt-5.1"
+    },
+    {
+      "task_id": "",
+      "prompt_tokens": 225,
+      "completion_tokens": 77,
+      "total_tokens": 302,
+      "latency_ms": 1677.947541931644,
+      "backend": "openai",
+      "model": "gpt-5.1"
+    },
+    {
+      "task_id": "",
+      "prompt_tokens": 202,
+      "completion_tokens": 77,
+      "total_tokens": 279,
+      "latency_ms": 1649.646416073665,
+      "backend": "openai",
+      "model": "gpt-5.1"
+    }
+  ]
+}
