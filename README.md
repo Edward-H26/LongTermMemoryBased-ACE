@@ -33,8 +33,8 @@ START -> Router -> Planner -> Solver (CoT/ToT/ReAct) -> Critic -> ACE Learning -
 ## Installation
 
 ```bash
-git clone https://github.com/Edward-H26/LongTermMemoryBasedSelfEvolvingAlgorithm.git
-cd LongTermMemoryBasedSelfEvolvingAlgorithm
+git clone https://github.com/Edward-H26/LongTermMemoryBased-ACE.git
+cd LongTermMemoryBased-ACE
 
 pip install -r requirements.txt
 
@@ -132,7 +132,7 @@ The v5 pipeline keeps v4 model behavior and adds reliability features for long r
 ### One-command v5 run
 
 ```bash
-python -m benchmark.run_v5 \
+python -m benchmark.v5.run \
     --manifest benchmark/results/v5/subset_manifest_v5_seed42_n200.json \
     --max-samples 200 \
     --seed 42 \
@@ -144,7 +144,7 @@ python -m benchmark.run_v5 \
 ### V5 preflight (static, smoke, or both)
 
 ```bash
-python -m benchmark.run_v5 \
+python -m benchmark.v5.run \
     --preflight-mode static \
     --manifest benchmark/results/v5/subset_manifest_v5_seed42_n200.json \
     --max-samples 200 \
@@ -176,7 +176,7 @@ python -m benchmark.run_v5 \
 | `--smoke-output-dir` | `benchmark/results/v5/smoke_v5` | Smoke run artifact directory. |
 | `--estimate-source` | `auto` | `auto`, `v5`, `v4`, `v3`, or `heuristic` (`auto` prefers v4 reports, then v5, then v3, then heuristic). |
 | `--preflight-report` | `benchmark/results/v5/preflight_v5.json` | Preflight report path. |
-| `--sanitize-after-run` | `False` | Run `benchmark.sanitize_results` after the pipeline finishes. |
+| `--sanitize-after-run` | `False` | Run `benchmark.sanitize` after the pipeline finishes. |
 | `--sanitize-in-place` | `False` | Rewrite JSONL artifacts in-place during sanitize stage. |
 | `--sanitize-mode` | `warn` | Sanitizer mode: `warn` or `strict`. |
 | `--sanitize-report` | `benchmark/results/v5/sanitize_report_v5.json` | Sanitizer report path. |
@@ -188,7 +188,7 @@ python -m benchmark.run_v5 \
 - `benchmark/results/v5/run_v5_meta.json` must contain start and end timestamps.
 
 ```bash
-python -m benchmark.run_v5 \
+python -m benchmark.v5.run \
     --preflight-mode smoke \
     --smoke-samples 5 \
     --seed 42 \
@@ -199,7 +199,7 @@ python -m benchmark.run_v5 \
 ```
 
 ```bash
-python -m benchmark.run_v5 \
+python -m benchmark.v5.run \
     --preflight-mode both \
     --smoke-samples 5 \
     --manifest benchmark/results/v5/subset_manifest_v5_seed42_n200.json \
@@ -231,7 +231,7 @@ Durability artifacts:
 Sanitize existing result files in-place:
 
 ```bash
-python -m benchmark.sanitize_results \
+python -m benchmark.sanitize \
     --input-root benchmark/results \
     --version all \
     --in-place \
@@ -242,7 +242,7 @@ python -m benchmark.sanitize_results \
 Run sanitize automatically at the end of a v5 run:
 
 ```bash
-python -m benchmark.run_v5 \
+python -m benchmark.v5.run \
     --manifest benchmark/results/v5/subset_manifest_v5_seed42_n200.json \
     --max-samples 200 \
     --seed 42 \
@@ -280,8 +280,8 @@ When publishing to GitHub, use the allowlist above and avoid publishing raw JSON
 ### Backfill cost reports for existing v4 and v5 artifacts
 
 ```bash
-python -m benchmark.backfill_cost_v5 --version v4
-python -m benchmark.backfill_cost_v5 --version v5
+python -m benchmark.v5.backfill_cost --version v4
+python -m benchmark.v5.backfill_cost --version v5
 ```
 
 Backfill outputs are non-destructive by default:
@@ -310,7 +310,7 @@ The v4 pipeline adds memory-scope switching (`hybrid` default), context-level pa
 Static and smoke results are written to `benchmark/results/v4/preflight_v4.json` by default.
 
 ```bash
-python -m benchmark.run_v4 \
+python -m benchmark.v4.run \
     --preflight-mode static \
     --manifest benchmark/results/v4/subset_manifest_v4_seed42_n200.json \
     --max-samples 200 \
@@ -321,7 +321,7 @@ python -m benchmark.run_v4 \
 ```
 
 ```bash
-python -m benchmark.run_v4 \
+python -m benchmark.v4.run \
     --preflight-mode smoke \
     --smoke-samples 5 \
     --seed 42 \
@@ -332,7 +332,7 @@ python -m benchmark.run_v4 \
 ```
 
 ```bash
-python -m benchmark.run_v4 \
+python -m benchmark.v4.run \
     --preflight-mode both \
     --smoke-samples 5 \
     --manifest benchmark/results/v4/subset_manifest_v4_seed42_n200.json \
@@ -349,7 +349,7 @@ Smoke mode requires live model APIs and CL-bench dataset availability (Hub acces
 ### One-command full run
 
 ```bash
-python -m benchmark.run_v4 \
+python -m benchmark.v4.run \
     --manifest benchmark/results/v4/subset_manifest_v4_seed42_n200.json \
     --max-samples 200 \
     --seed 42 \
@@ -403,7 +403,7 @@ The v3 pipeline is deterministic and quality-gated. Baseline and ACE runs use th
 ### One-command parallel run (recommended)
 
 ```bash
-python -m benchmark.run_v3 \
+python -m benchmark.v3.run \
     --manifest benchmark/results/v3/subset_manifest_v3_seed42_n200.json \
     --max-samples 200 \
     --seed 42
@@ -427,12 +427,12 @@ This clears v3 result files and the Neo4j database, runs baseline and ACE infere
 - `--no-clear-db`: Use when resuming; keeps existing ACE memory.
 - `--no-with-report`: Use when you only need inference outputs and will run eval/compare separately.
 
-`benchmark.complete_v3_pipeline.py` currently validates against a fixed target of 200 samples. For non-200 subset runs, use `--no-with-report` and run Steps 3-5 manually.
+`benchmark.v3.complete_pipeline` currently validates against a fixed target of 200 samples. For non-200 subset runs, use `--no-with-report` and run Steps 3-5 manually.
 
 ### Step 1: Run baseline v3 (seed 42, 200 samples)
 
 ```bash
-python -m benchmark.infer_baseline_v3 \
+python -m benchmark.v3.infer_baseline \
     --max-samples 200 \
     --seed 42 \
     --manifest benchmark/results/v3/subset_manifest_v3_seed42_n200.json \
@@ -445,7 +445,7 @@ By default, `--clear-results` deletes the output file before starting. Use `--no
 ### Step 2: Run ACE direct v3 with balanced quality gate
 
 ```bash
-python -m benchmark.infer_ace_direct_v3 \
+python -m benchmark.v3.infer_ace \
     --max-samples 200 \
     --seed 42 \
     --manifest benchmark/results/v3/subset_manifest_v3_seed42_n200.json \
@@ -523,13 +523,14 @@ python -m benchmark.compare \
 - `docs/ALGORITHM.md`: Runtime and benchmark algorithm specification, including V5 reliability flow and diagnostics.
 - `docs/SETUP.md`: Full environment setup and end-to-end benchmark execution for V5, V4, and V3.
 - `docs/RESULTS_STRUCTURE.md`: Canonical versioned artifact tree and schema conventions.
+- `docs/REFACTORING.md`: Benchmark module restructuring changelog and migration guide.
 - `docs/CL_BENCH_CALCULATION_DETAILS.md`: Upstream CL-bench metric and scoring calculations.
 - `docs/COMPARISON_REPORT_V2_CALCULATION_DETAILS.md`: Local V2 comparison report calculation details.
 
 ## Project Structure
 
 ```
-LongTermMemoryBasedSelfEvolvingAlgorithm/
+LongTermMemoryBased-ACE/
 ├── README.md                    # This file
 ├── requirements.txt             # Python dependencies
 ├── .env.example                 # Environment variable template
@@ -549,28 +550,53 @@ LongTermMemoryBasedSelfEvolvingAlgorithm/
 ├── run_agent.py                 # Stdin JSON entrypoint
 ├── analyze_memory.py            # Memory analysis tool
 ├── benchmark/
-│   ├── infer_baseline.py        # CL-bench baseline inference
-│   ├── infer_ace.py             # CL-bench ACE inference
-│   ├── infer_baseline_v3.py     # CL-bench baseline inference (deterministic subset)
-│   ├── infer_ace_direct_v3.py   # CL-bench ACE direct inference (quality-gated)
-│   ├── infer_baseline_v4.py     # CL-bench baseline inference (v4 capped-output retry)
-│   ├── infer_ace_direct_v4.py   # CL-bench ACE direct inference (v4 memory scopes + step scoring)
-│   ├── infer_baseline_v5.py     # CL-bench baseline inference (v5 versioned artifacts)
-│   ├── infer_ace_direct_v5.py   # CL-bench ACE direct inference (v5 durable resume + fail-soft memory)
-│   ├── run_v3.py                # Run baseline and ACE v3 in parallel (clears results and DB)
-│   ├── run_v4.py                # Run baseline and ACE v4 in parallel (with optional report)
-│   ├── run_v5.py                # Run baseline and ACE v5 in parallel (with reliability features)
-│   ├── preflight_v4.py          # V4 static checks, estimates, and mini smoke orchestration
-│   ├── preflight_v5.py          # V5 static checks, estimates, and mini smoke orchestration
-│   ├── backfill_cost_v5.py      # Supplemental full-cost backfill for existing v4/v5 outputs
-│   ├── complete_v4_pipeline.py  # V4 post-inference eval/error/compare pipeline
-│   ├── complete_v5_pipeline.py  # V5 post-inference eval/error/compare pipeline with side retries
+│   ├── __init__.py
+│   ├── common/                  # Shared utilities (IO, API, identifiers, env)
+│   │   ├── __init__.py
+│   │   ├── io.py                # load_jsonl, append_jsonl, load_json, write_json
+│   │   ├── identifiers.py      # get_task_id, get_context_id, get_context_category
+│   │   ├── api.py               # call_api with capped-output retry, infer_with_retry
+│   │   ├── env.py               # utc_now_iso, safe_env_int/float/bool
+│   │   ├── neo4j_utils.py       # clear_neo4j_all
+│   │   ├── ace_shared.py        # META_STRATEGY_SEEDS, format/inject guidance
+│   │   ├── pipeline.py          # Orchestrator helpers (build_subprocess_env, run metadata)
+│   │   └── llm_utils.py         # parse_response_text, extract_usage
+│   ├── v1/                      # V1 inference scripts
+│   │   ├── __init__.py
+│   │   ├── infer_baseline.py
+│   │   └── infer_ace.py
+│   ├── v2/                      # V2 inference scripts
+│   │   ├── __init__.py
+│   │   ├── infer_baseline.py
+│   │   └── infer_ace.py
+│   ├── v3/                      # V3 deterministic + quality-gated pipeline
+│   │   ├── __init__.py
+│   │   ├── infer_baseline.py
+│   │   ├── infer_ace.py
+│   │   ├── run.py               # One-command v3 orchestration
+│   │   └── complete_pipeline.py
+│   ├── v4/                      # V4 memory scopes + step scoring pipeline
+│   │   ├── __init__.py
+│   │   ├── infer_baseline.py
+│   │   ├── infer_ace.py
+│   │   ├── run.py               # One-command v4 orchestration
+│   │   ├── preflight.py
+│   │   └── complete_pipeline.py
+│   ├── v5/                      # V5 durable resume + fail-soft pipeline
+│   │   ├── __init__.py
+│   │   ├── infer_baseline.py
+│   │   ├── infer_ace.py
+│   │   ├── run.py               # One-command v5 orchestration
+│   │   ├── preflight.py
+│   │   ├── complete_pipeline.py
+│   │   └── backfill_cost.py
 │   ├── sampling.py              # Seeded subset sampling + manifest reuse
 │   ├── eval.py                  # Rubric-based evaluation
 │   ├── error_analysis.py        # Error type classification
 │   ├── compare.py               # Side-by-side comparison
-│   ├── costing.py               # Centralized token-cost and billed reconciliation utilities
+│   ├── costing.py               # Token-cost and billed reconciliation utilities
 │   ├── metrics.py               # Token/latency collection
+│   ├── sanitize.py              # JSONL sanitization for publishing
 │   └── results/                 # Output directory
 │       ├── v1/                  # V1 benchmark results
 │       ├── v2/                  # V2 benchmark results

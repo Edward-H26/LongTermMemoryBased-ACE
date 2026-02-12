@@ -14,7 +14,7 @@ FIX from v1:
 - Database clearing for fresh experiments
 
 Usage:
-    python -m benchmark.infer_ace_direct_v2 --max-samples 200 --clear-memory --output benchmark/results/v2/ace_v2.jsonl
+    python -m benchmark.v2.infer_ace --max-samples 200 --clear-memory --output benchmark/results/v2/ace_v2.jsonl
 """
 
 import json

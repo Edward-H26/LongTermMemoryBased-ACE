@@ -4,7 +4,7 @@ CL-bench ACE Direct Inference V3: GPT-5.1 + ACE memory enrichment.
 Adds deterministic seeded sampling and quality-gated online updates.
 
 Usage:
-    python -m benchmark.infer_ace_direct_v3 \
+    python -m benchmark.v3.infer_ace \
         --max-samples 200 \
         --seed 42 \
         --manifest benchmark/results/v3/subset_manifest_v3_seed42_n200.json \

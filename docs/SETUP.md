@@ -93,7 +93,7 @@ NEO4J_PASSWORD=your-generated-password
 
 **Keep your instance alive:** The ACE agent writes to Neo4j on every execution (saving memory bullets), so regular usage prevents auto-pause. For infrequent use, visit the Aura Console and click "Resume" on your paused instance before running the agent.
 
-**V3 benchmark `--clear-db` (default: on):** `infer_ace_direct_v3.py` and `run_v3.py` wipe all nodes and relationships in the database before starting. Use a Neo4j instance dedicated to benchmarking, or pass `--no-clear-db` to resume without wiping.
+**V3 benchmark `--clear-db` (default: on):** `v3/infer_ace.py` and `v3/run.py` wipe all nodes and relationships in the database before starting. Use a Neo4j instance dedicated to benchmarking, or pass `--no-clear-db` to resume without wiping.
 
 **Verify it works:**
 
@@ -399,7 +399,7 @@ NEO4J_PASSWORD=your-password
 Use `run_v5` for durable resume, context-parallel ACE inference, and side-retry post-pipeline execution.
 
 ```bash
-python -m benchmark.run_v5 \
+python -m benchmark.v5.run \
   --manifest benchmark/results/v5/subset_manifest_v5_seed42_n200.json \
   --max-samples 200 \
   --seed 42 \
@@ -407,7 +407,7 @@ python -m benchmark.run_v5 \
   --memory-scope hybrid
 ```
 
-Current defaults in `benchmark/run_v5.py`:
+Current defaults in `benchmark/v5/run.py`:
 
 - `--sampling-strategy`: `context_dense`
 - `--memory-scope`: `hybrid`
@@ -435,8 +435,8 @@ With defaults, `run_v5`:
 3. Runs `infer_baseline_v5` and `infer_ace_direct_v5` in parallel.
 4. Uses ACE per-task durable progress journal for crash-safe resume.
 5. Writes `benchmark/results/v5/run_v5_meta.json` with phase timestamps.
-6. Runs `benchmark.complete_v5_pipeline`, which performs parallel eval, parallel error analysis, per-side retries, parity validation, full-pipeline metered cost reporting, and strict billed-cost reconciliation.
-7. Optionally runs `benchmark.sanitize_results` for post-run JSONL sanitization.
+6. Runs `benchmark.v5.complete_pipeline`, which performs parallel eval, parallel error analysis, per-side retries, parity validation, full-pipeline metered cost reporting, and strict billed-cost reconciliation.
+7. Optionally runs `benchmark.sanitize` for post-run JSONL sanitization.
 
 Strict billing prerequisites for default v5 flow:
 
@@ -447,7 +447,7 @@ Strict billing prerequisites for default v5 flow:
 ### V5 dual preflight
 
 ```bash
-python -m benchmark.run_v5 \
+python -m benchmark.v5.run \
   --preflight-mode static \
   --manifest benchmark/results/v5/subset_manifest_v5_seed42_n200.json \
   --max-samples 200 \
@@ -458,7 +458,7 @@ python -m benchmark.run_v5 \
 ```
 
 ```bash
-python -m benchmark.run_v5 \
+python -m benchmark.v5.run \
   --preflight-mode smoke \
   --smoke-samples 5 \
   --seed 42 \
@@ -469,7 +469,7 @@ python -m benchmark.run_v5 \
 ```
 
 ```bash
-python -m benchmark.run_v5 \
+python -m benchmark.v5.run \
   --preflight-mode both \
   --smoke-samples 5 \
   --manifest benchmark/results/v5/subset_manifest_v5_seed42_n200.json \
@@ -490,14 +490,14 @@ python -m benchmark.run_v5 \
 ### V5 manual sequence
 
 ```bash
-python -m benchmark.infer_baseline_v5 \
+python -m benchmark.v5.infer_baseline \
   --max-samples 200 \
   --seed 42 \
   --manifest benchmark/results/v5/subset_manifest_v5_seed42_n200.json \
   --sampling-strategy context_dense \
   --output benchmark/results/v5/baseline_v5.jsonl
 
-python -m benchmark.infer_ace_direct_v5 \
+python -m benchmark.v5.infer_ace \
   --max-samples 200 \
   --seed 42 \
   --manifest benchmark/results/v5/subset_manifest_v5_seed42_n200.json \
@@ -508,7 +508,7 @@ python -m benchmark.infer_ace_direct_v5 \
   --finalize-order \
   --output benchmark/results/v5/ace_v5.jsonl
 
-python -m benchmark.complete_v5_pipeline \
+python -m benchmark.v5.complete_pipeline \
   --output-dir benchmark/results/v5 \
   --max-samples 200 \
   --judge-model gpt-5.1 \
@@ -521,7 +521,7 @@ python -m benchmark.complete_v5_pipeline \
 ### Sanitize existing JSONL in-place
 
 ```bash
-python -m benchmark.sanitize_results \
+python -m benchmark.sanitize \
   --input-root benchmark/results \
   --version all \
   --in-place \
@@ -532,7 +532,7 @@ python -m benchmark.sanitize_results \
 ### Enable post-run sanitization in `run_v5`
 
 ```bash
-python -m benchmark.run_v5 \
+python -m benchmark.v5.run \
   --manifest benchmark/results/v5/subset_manifest_v5_seed42_n200.json \
   --max-samples 200 \
   --seed 42 \
@@ -571,8 +571,8 @@ Publish only allowlisted artifacts to GitHub, keep raw JSONL and progress journa
 Backfill full-cost reports for existing runs:
 
 ```bash
-python -m benchmark.backfill_cost_v5 --version v4
-python -m benchmark.backfill_cost_v5 --version v5
+python -m benchmark.v5.backfill_cost --version v4
+python -m benchmark.v5.backfill_cost --version v5
 ```
 
 See `docs/RESULTS_STRUCTURE.md` for canonical artifact schema details.
@@ -584,14 +584,14 @@ See `docs/RESULTS_STRUCTURE.md` for canonical artifact schema details.
 Use `run_v4` when you want deterministic subset selection, parallel baseline and ACE inference, v4 memory-scope switching, and automatic post-inference evaluation/report generation.
 
 ```bash
-python -m benchmark.run_v4 \
+python -m benchmark.v4.run \
   --manifest benchmark/results/v4/subset_manifest_v4_seed42_n200.json \
   --max-samples 200 \
   --seed 42 \
   --memory-scope hybrid
 ```
 
-Current defaults in `benchmark/run_v4.py`:
+Current defaults in `benchmark/v4/run.py`:
 
 - `--sampling-strategy`: `context_dense`
 - `--memory-scope`: `hybrid`
@@ -610,7 +610,7 @@ With defaults, the command:
 2. Clears Neo4j.
 3. Runs `infer_baseline_v4` and `infer_ace_direct_v4` in parallel.
 4. Verifies output line counts against `--max-samples`.
-5. Runs `benchmark.complete_v4_pipeline --output-dir ... --skip-wait --max-samples ...` for eval, error analysis, and comparison report generation.
+5. Runs `benchmark.v4.complete_pipeline --output-dir ... --skip-wait --max-samples ...` for eval, error analysis, and comparison report generation.
 
 ### Dual preflight mode (`static + estimate` and `mini smoke`)
 
@@ -619,7 +619,7 @@ Use preflight when you want to validate setup and estimate budget before committ
 #### Stage A: static checks + estimate (no benchmark API calls)
 
 ```bash
-python -m benchmark.run_v4 \
+python -m benchmark.v4.run \
   --preflight-mode static \
   --manifest benchmark/results/v4/subset_manifest_v4_seed42_n200.json \
   --max-samples 200 \
@@ -632,7 +632,7 @@ python -m benchmark.run_v4 \
 #### Stage B: mini live smoke (3 to 5 tasks, full post-pipeline)
 
 ```bash
-python -m benchmark.run_v4 \
+python -m benchmark.v4.run \
   --preflight-mode smoke \
   --smoke-samples 5 \
   --seed 42 \
@@ -645,7 +645,7 @@ python -m benchmark.run_v4 \
 #### Run both stages in one command
 
 ```bash
-python -m benchmark.run_v4 \
+python -m benchmark.v4.run \
   --preflight-mode both \
   --smoke-samples 5 \
   --manifest benchmark/results/v4/subset_manifest_v4_seed42_n200.json \
@@ -671,7 +671,7 @@ If `status` is `failed`, fix `blocking_issues` before running the full benchmark
 ### Manual sequence (explicit control)
 
 ```bash
-python -m benchmark.infer_baseline_v4 \
+python -m benchmark.v4.infer_baseline \
   --max-samples 200 \
   --seed 42 \
   --manifest benchmark/results/v4/subset_manifest_v4_seed42_n200.json \
@@ -680,7 +680,7 @@ python -m benchmark.infer_baseline_v4 \
   --empty-output-retry-max-tokens 16384 \
   --output benchmark/results/v4/baseline_v4.jsonl
 
-python -m benchmark.infer_ace_direct_v4 \
+python -m benchmark.v4.infer_ace \
   --max-samples 200 \
   --seed 42 \
   --manifest benchmark/results/v4/subset_manifest_v4_seed42_n200.json \
@@ -701,7 +701,7 @@ python -m benchmark.infer_ace_direct_v4 \
   --empty-output-retry-max-tokens 16384 \
   --output benchmark/results/v4/ace_v4.jsonl
 
-python -m benchmark.complete_v4_pipeline \
+python -m benchmark.v4.complete_pipeline \
   --max-samples 200 \
   --judge-model gpt-5.1
 ```
@@ -738,13 +738,13 @@ comm -13 <(rg '^[A-Z0-9_]+=.*' .env -o | sed 's/=.*//' | sort) \
 Use `run_v3` when you want deterministic subset selection, parallel baseline and ACE inference, and automatic post-inference evaluation/report generation.
 
 ```bash
-python -m benchmark.run_v3 \
+python -m benchmark.v3.run \
   --manifest benchmark/results/v3/subset_manifest_v3_seed42_n200.json \
   --max-samples 200 \
   --seed 42
 ```
 
-Current defaults in `benchmark/run_v3.py`:
+Current defaults in `benchmark/v3/run.py`:
 
 - `--clear-results`: true
 - `--clear-db`: true
@@ -756,27 +756,27 @@ With defaults, the command:
 2. Clears Neo4j.
 3. Runs `infer_baseline_v3` and `infer_ace_direct_v3` in parallel.
 4. Verifies output line counts.
-5. Runs `benchmark.complete_v3_pipeline --skip-wait`, which performs eval, error analysis, and comparison report generation.
+5. Runs `benchmark.v3.complete_pipeline --skip-wait`, which performs eval, error analysis, and comparison report generation.
 
 ### Important constraint for non-200 runs
 
-`benchmark.complete_v3_pipeline.py` currently uses `TARGET = 200`.
+`benchmark/v3/complete_pipeline.py` currently uses `TARGET = 200`.
 If `--max-samples` is not 200, run:
 
-- `python -m benchmark.run_v3 ... --no-with-report`
+- `python -m benchmark.v3.run ... --no-with-report`
 
 Then run the eval, error analysis, and compare commands manually.
 
 ### Manual sequence (explicit control)
 
 ```bash
-python -m benchmark.infer_baseline_v3 \
+python -m benchmark.v3.infer_baseline \
   --max-samples 200 \
   --seed 42 \
   --manifest benchmark/results/v3/subset_manifest_v3_seed42_n200.json \
   --output benchmark/results/v3/baseline_v3.jsonl
 
-python -m benchmark.infer_ace_direct_v3 \
+python -m benchmark.v3.infer_ace \
   --max-samples 200 \
   --seed 42 \
   --manifest benchmark/results/v3/subset_manifest_v3_seed42_n200.json \
@@ -834,10 +834,10 @@ Check that `NEO4J_URI` starts with `neo4j+s://` (not `bolt://` or `neo4j://`). A
 Visit [console.neo4j.io](https://console.neo4j.io), find your instance, and click "Resume". Free instances pause after 3 days of no write activity.
 
 **"OPENAI_API_KEY not set" when running benchmarks:**
-The benchmark scripts (`run_v3.py`, `infer_baseline_v3.py`, `infer_ace_direct_v3.py`, `eval.py`, `error_analysis.py`) require OpenAI credentials either directly or in downstream stages. Set `OPENAI_API_KEY` in your `.env`.
+The benchmark scripts (`v3/run.py`, `v3/infer_baseline.py`, `v3/infer_ace.py`, `eval.py`, `error_analysis.py`) require OpenAI credentials either directly or in downstream stages. Set `OPENAI_API_KEY` in your `.env`.
 
 **`run_v3` fails on non-200 subset with report enabled:**
-`complete_v3_pipeline.py` currently checks for 200 lines. Use `--no-with-report` for non-200 runs, then run post-steps manually.
+`v3/complete_pipeline.py` currently checks for 200 lines. Use `--no-with-report` for non-200 runs, then run post-steps manually.
 
 **`run_v4` reports empty model outputs on difficult tasks:**
 V4 automatically retries when the first response is empty and completion hit token cap. You can further increase `ACE_MAX_COMPLETION_TOKENS` and `ACE_EMPTY_OUTPUT_RETRY_MAX_TOKENS`, or pass `--max-completion-tokens` and `--empty-output-retry-max-tokens` directly.

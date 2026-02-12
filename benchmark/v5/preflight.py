@@ -1,5 +1,5 @@
 """
-Preflight helpers for CL-bench V4 static checks, estimation, and mini smoke runs.
+Preflight helpers for CL-bench V5 static checks, estimation, and mini smoke runs.
 """
 
 from __future__ import annotations
@@ -19,8 +19,9 @@ from src.step_scoring import split_reasoning_steps
 
 
 SUPPORTED_MEMORY_SCOPES = {"hybrid", "local", "global"}
-SUPPORTED_SAMPLING_STRATEGIES = {"task_random", "context_dense"}
+SUPPORTED_SAMPLING_STRATEGIES = {"task_random", "context_dense", "context_dense_stratified"}
 SUPPORTED_SMOKE_SAMPLES = {3, 4, 5}
+VERSION_NAMES = {"v1", "v2", "v3", "v4", "v5"}
 
 REQUIRED_ENV_KEYS = [
     "OPENAI_API_KEY",
@@ -31,9 +32,9 @@ REQUIRED_ENV_KEYS = [
 ]
 
 REQUIRED_MODULES = [
-    "benchmark.infer_baseline_v4",
-    "benchmark.infer_ace_direct_v4",
-    "benchmark.complete_v4_pipeline",
+    "benchmark.v5.infer_baseline",
+    "benchmark.v5.infer_ace",
+    "benchmark.v5.complete_pipeline",
     "benchmark.compare",
     "benchmark.eval",
     "benchmark.error_analysis",
@@ -54,9 +55,9 @@ ERROR_PROMPT_TOKENS_PER_FAILED_TASK = 1300.0
 ERROR_COMPLETION_TOKENS_PER_FAILED_TASK = 220.0
 COMPARE_SECONDS = 8.0
 
-STEP_PROMPT_TOKENS_PER_CALL = 220.0
-STEP_COMPLETION_TOKENS_PER_CALL = 40.0
-STEP_SECONDS_PER_CALL = 1.8
+STEP_PROMPT_TOKENS_PER_CALL_FALLBACK = 220.0
+STEP_COMPLETION_TOKENS_PER_CALL_FALLBACK = 40.0
+STEP_SECONDS_PER_CALL_FALLBACK = 1.8
 
 HEURISTIC_BASELINE = {
     "avg_prompt_tokens": 10008.315,
@@ -71,6 +72,13 @@ HEURISTIC_ACE = {
 HEURISTIC_SOLVING = {
     "baseline_overall": 12.0,
     "ace_overall": 16.0,
+}
+
+UNSANITIZED_TOP_LEVEL_FIELDS = {
+    "messages",
+    "model_output",
+    "rubrics",
+    "grading_rationale",
 }
 
 
@@ -116,6 +124,89 @@ def _load_jsonl(path: str) -> List[Dict[str, Any]]:
             if isinstance(item, dict):
                 rows.append(item)
     return rows
+
+
+def _find_unsanitized_jsonl_rows(root_dir: str) -> List[Dict[str, Any]]:
+    findings: List[Dict[str, Any]] = []
+    if not os.path.isdir(root_dir):
+        return findings
+
+    for current_root, _, files in os.walk(root_dir):
+        for file_name in files:
+            if not file_name.endswith(".jsonl") or file_name.endswith(".progress.jsonl"):
+                continue
+            path = os.path.join(current_root, file_name)
+            detected_fields = set()
+            inspected_rows = 0
+            try:
+                with open(path, "r", encoding = "utf-8") as handle:
+                    for raw in handle:
+                        line = raw.strip()
+                        if not line:
+                            continue
+                        try:
+                            row = json.loads(line)
+                        except json.JSONDecodeError:
+                            continue
+                        if not isinstance(row, dict):
+                            continue
+                        inspected_rows += 1
+
+                        for key in UNSANITIZED_TOP_LEVEL_FIELDS:
+                            if key in row:
+                                detected_fields.add(key)
+
+                        metrics = row.get("metrics", {})
+                        if isinstance(metrics, dict):
+                            if "memory_error" in metrics:
+                                detected_fields.add("metrics.memory_error")
+                            step_scoring = metrics.get("step_scoring", {})
+                            if isinstance(step_scoring, dict) and "steps" in step_scoring:
+                                detected_fields.add("metrics.step_scoring.steps")
+
+                        error_classification = row.get("error_classification", {})
+                        if isinstance(error_classification, dict) and "per_rubric_classification" in error_classification:
+                            detected_fields.add("error_classification.per_rubric_classification")
+
+                        if inspected_rows >= 5:
+                            break
+            except Exception:
+                continue
+
+            if detected_fields:
+                findings.append({
+                    "path": path,
+                    "detected_fields": sorted(detected_fields),
+                    "inspected_rows": inspected_rows,
+                })
+
+    return findings
+
+
+def _tracked_jsonl_violations() -> List[str]:
+    if not os.path.isdir(".git"):
+        return []
+    try:
+        result = subprocess.run(
+            ["git", "ls-files", "benchmark/results"],
+            check = False,
+            capture_output = True,
+            text = True,
+        )
+    except Exception:
+        return []
+
+    if result.returncode != 0:
+        return []
+
+    violations: List[str] = []
+    for raw in result.stdout.splitlines():
+        path = raw.strip()
+        if not path:
+            continue
+        if path.endswith(".jsonl") and not path.endswith(".progress.jsonl"):
+            violations.append(path)
+    return violations
 
 
 def _count_lines(path: str) -> int:
@@ -168,9 +259,22 @@ def _ensure_parent(path: str) -> None:
 
 
 def _choose_source_path(estimate_source: str, output_dir: str) -> Tuple[str, str]:
+    local_v5 = os.path.join(output_dir, "comparison_report_v5.json")
+    default_v5 = os.path.join("benchmark", "results", "v5", "comparison_report_v5.json")
     local_v4 = os.path.join(output_dir, "comparison_report_v4.json")
     default_v4 = os.path.join("benchmark", "results", "v4", "comparison_report_v4.json")
     default_v3 = os.path.join("benchmark", "results", "v3", "comparison_report_v3.json")
+
+    if estimate_source == "v5":
+        if os.path.exists(local_v5):
+            return "v5", local_v5
+        if os.path.exists(default_v5):
+            return "v5", default_v5
+        if os.path.exists(local_v4):
+            return "v4", local_v4
+        if os.path.exists(default_v4):
+            return "v4", default_v4
+        return "heuristic", ""
 
     if estimate_source == "v4":
         if os.path.exists(local_v4):
@@ -191,6 +295,10 @@ def _choose_source_path(estimate_source: str, output_dir: str) -> Tuple[str, str
         return "v4", local_v4
     if os.path.exists(default_v4):
         return "v4", default_v4
+    if os.path.exists(local_v5):
+        return "v5", local_v5
+    if os.path.exists(default_v5):
+        return "v5", default_v5
     if os.path.exists(default_v3):
         return "v3", default_v3
     return "heuristic", ""
@@ -205,6 +313,15 @@ def _derive_step_inputs(source_tag: str, source_dir: str) -> Dict[str, Any]:
     }
 
     candidates: List[Tuple[str, str]] = []
+    if source_tag == "v5":
+        candidates.append((
+            os.path.join(source_dir, "ace_v5.jsonl"),
+            os.path.join(source_dir, "ace_v5_graded.jsonl"),
+        ))
+        candidates.append((
+            os.path.join("benchmark", "results", "v5", "ace_v5.jsonl"),
+            os.path.join("benchmark", "results", "v5", "ace_v5_graded.jsonl"),
+        ))
     if source_tag == "v4":
         candidates.append((
             os.path.join(source_dir, "ace_v4.jsonl"),
@@ -214,6 +331,14 @@ def _derive_step_inputs(source_tag: str, source_dir: str) -> Dict[str, Any]:
             os.path.join("benchmark", "results", "v4", "ace_v4.jsonl"),
             os.path.join("benchmark", "results", "v4", "ace_v4_graded.jsonl"),
         ))
+    candidates.append((
+        os.path.join("benchmark", "results", "v5", "ace_v5.jsonl"),
+        os.path.join("benchmark", "results", "v5", "ace_v5_graded.jsonl"),
+    ))
+    candidates.append((
+        os.path.join("benchmark", "results", "v4", "ace_v4.jsonl"),
+        os.path.join("benchmark", "results", "v4", "ace_v4_graded.jsonl"),
+    ))
     candidates.append((
         os.path.join("benchmark", "results", "v3", "ace_v3.jsonl"),
         os.path.join("benchmark", "results", "v3", "ace_v3_graded.jsonl"),
@@ -255,9 +380,62 @@ def _derive_step_inputs(source_tag: str, source_dir: str) -> Dict[str, Any]:
     return fallback_info
 
 
+def _derive_empirical_step_profile(source_tag: str, source_dir: str) -> Dict[str, Any]:
+    fallback = {
+        "prompt_tokens_per_call": STEP_PROMPT_TOKENS_PER_CALL_FALLBACK,
+        "completion_tokens_per_call": STEP_COMPLETION_TOKENS_PER_CALL_FALLBACK,
+        "seconds_per_call": STEP_SECONDS_PER_CALL_FALLBACK,
+        "source_paths": [],
+        "fallback_used": True,
+    }
+
+    candidates: List[str] = []
+    if source_tag == "v5":
+        candidates.append(os.path.join(source_dir, "ace_v5_metrics.json"))
+        candidates.append(os.path.join("benchmark", "results", "v5", "ace_v5_metrics.json"))
+    if source_tag == "v4":
+        candidates.append(os.path.join(source_dir, "ace_v4_metrics.json"))
+        candidates.append(os.path.join("benchmark", "results", "v4", "ace_v4_metrics.json"))
+    candidates.extend(
+        [
+            os.path.join("benchmark", "results", "v5", "ace_v5_metrics.json"),
+            os.path.join("benchmark", "results", "v4", "ace_v4_metrics.json"),
+            os.path.join("benchmark", "results", "v3", "ace_v3_metrics.json"),
+        ]
+    )
+
+    seen = set()
+    for metrics_path in candidates:
+        if metrics_path in seen:
+            continue
+        seen.add(metrics_path)
+        payload = _load_json(metrics_path)
+        summary = payload.get("summary", {}) if isinstance(payload.get("summary", {}), dict) else {}
+        total_calls = _safe_float(summary.get("total_calls", 0.0), 0.0)
+        total_prompt = _safe_float(summary.get("total_prompt_tokens", 0.0), 0.0)
+        total_completion = _safe_float(summary.get("total_completion_tokens", 0.0), 0.0)
+        avg_latency_ms = _safe_float(summary.get("avg_latency_ms", 0.0), 0.0)
+        if total_calls <= 0.0:
+            continue
+        prompt_per_call = total_prompt / total_calls if total_prompt > 0 else STEP_PROMPT_TOKENS_PER_CALL_FALLBACK
+        completion_per_call = total_completion / total_calls if total_completion > 0 else STEP_COMPLETION_TOKENS_PER_CALL_FALLBACK
+        seconds_per_call = (avg_latency_ms / 1000.0) if avg_latency_ms > 0 else STEP_SECONDS_PER_CALL_FALLBACK
+        return {
+            "prompt_tokens_per_call": prompt_per_call,
+            "completion_tokens_per_call": completion_per_call,
+            "seconds_per_call": seconds_per_call,
+            "source_paths": [metrics_path],
+            "fallback_used": False,
+            "source_total_calls": total_calls,
+        }
+
+    return fallback
+
+
 def run_static_checks(
     manifest_path: str,
     output_dir: str,
+    progress_path: str,
     max_samples: int,
     sampling_strategy: str,
     memory_scope: str,
@@ -313,6 +491,27 @@ def run_static_checks(
         "name": "required_env",
         "ok": len(missing_env) == 0,
         "detail": "all present" if not missing_env else f"missing={missing_env}",
+    })
+
+    cost_mode = str(os.getenv("BENCHMARK_COST_MODE", "dual_source")).strip().lower()
+    billing_policy = str(os.getenv("BENCHMARK_BILLING_POLICY", "strict")).strip().lower()
+    strict_billing_needed = cost_mode == "dual_source" and billing_policy == "strict"
+    strict_missing: List[str] = []
+    if strict_billing_needed:
+        for key in ["OPENAI_ADMIN_API_KEY", "OPENAI_COST_PROJECT_ID"]:
+            if not str(os.getenv(key, "")).strip():
+                strict_missing.append(key)
+    if strict_missing:
+        blocking_issues.append(
+            "Strict dual-source billing reconciliation requires env keys: "
+            + ", ".join(strict_missing)
+        )
+    checks.append({
+        "name": "strict_billing_env",
+        "ok": len(strict_missing) == 0,
+        "detail": "strict billing prerequisites satisfied" if strict_billing_needed and not strict_missing else (
+            "strict billing not active" if not strict_billing_needed else f"missing={strict_missing}"
+        ),
     })
 
     missing_modules = [name for name in REQUIRED_MODULES if not _module_available(name)]
@@ -391,10 +590,56 @@ def run_static_checks(
         "detail": output_detail,
     })
 
+    progress_ok = True
+    progress_detail = f"progress_path={progress_path}"
+    progress_parent = os.path.dirname(progress_path) if os.path.dirname(progress_path) else "."
+    if os.path.exists(progress_path) and os.path.isdir(progress_path):
+        progress_ok = False
+        progress_detail = "progress path points to a directory"
+    elif os.path.exists(progress_parent) and not os.access(progress_parent, os.W_OK):
+        progress_ok = False
+        progress_detail = f"progress parent not writable: {progress_parent}"
+    if not progress_ok:
+        blocking_issues.append("Progress path is not writable.")
+    checks.append({
+        "name": "progress_path",
+        "ok": progress_ok,
+        "detail": progress_detail,
+    })
+
     checks.append({
         "name": "connectivity_probes",
         "ok": True,
         "detail": "optional probes skipped in static mode",
+    })
+
+    publish_root = output_dir
+    if publish_root.endswith("/"):
+        publish_root = publish_root[:-1]
+    if os.path.basename(publish_root) in VERSION_NAMES:
+        publish_root = os.path.dirname(publish_root) or publish_root
+
+    unsanitized_findings = _find_unsanitized_jsonl_rows(publish_root)
+    if unsanitized_findings:
+        warnings.append(
+            f"Unsanitized JSONL detected under publish root {publish_root}: "
+            f"{len(unsanitized_findings)} file(s)."
+        )
+    checks.append({
+        "name": "unsanitized_jsonl_scan",
+        "ok": len(unsanitized_findings) == 0,
+        "detail": "no unsanitized JSONL detected" if not unsanitized_findings else unsanitized_findings[:5],
+    })
+
+    tracked_violations = _tracked_jsonl_violations()
+    if tracked_violations:
+        warnings.append(
+            "Tracked JSONL artifacts detected in benchmark/results; these are not safe to publish."
+        )
+    checks.append({
+        "name": "tracked_jsonl_policy",
+        "ok": len(tracked_violations) == 0,
+        "detail": "no tracked JSONL artifacts" if not tracked_violations else tracked_violations[:10],
     })
 
     return {
@@ -485,7 +730,9 @@ def build_estimate(
     ace_inference_seconds = ace_avg_latency_s * max_samples
     inference_wall_seconds = max(baseline_inference_seconds, ace_inference_seconds)
 
-    step_inputs = _derive_step_inputs(source_tag = source_tag, source_dir = os.path.dirname(source_path) if source_path else output_dir)
+    source_dir = os.path.dirname(source_path) if source_path else output_dir
+    step_inputs = _derive_step_inputs(source_tag = source_tag, source_dir = source_dir)
+    step_profile = _derive_empirical_step_profile(source_tag = source_tag, source_dir = source_dir)
     non_empty_rate = _safe_float(step_inputs.get("non_empty_rate"), 0.8)
     mean_steps = _safe_float(step_inputs.get("mean_steps"), 18.0)
 
@@ -498,12 +745,24 @@ def build_estimate(
         llm_steps_per_non_empty = min(mean_steps, 24.0)
 
     step_calls_total = max_samples * non_empty_rate * llm_steps_per_non_empty
-    step_prompt_total = step_calls_total * STEP_PROMPT_TOKENS_PER_CALL
-    step_completion_total = step_calls_total * STEP_COMPLETION_TOKENS_PER_CALL
+    step_prompt_tokens_per_call = _safe_float(
+        step_profile.get("prompt_tokens_per_call"),
+        STEP_PROMPT_TOKENS_PER_CALL_FALLBACK,
+    )
+    step_completion_tokens_per_call = _safe_float(
+        step_profile.get("completion_tokens_per_call"),
+        STEP_COMPLETION_TOKENS_PER_CALL_FALLBACK,
+    )
+    step_seconds_per_call = _safe_float(
+        step_profile.get("seconds_per_call"),
+        STEP_SECONDS_PER_CALL_FALLBACK,
+    )
+    step_prompt_total = step_calls_total * step_prompt_tokens_per_call
+    step_completion_total = step_calls_total * step_completion_tokens_per_call
     step_cost = _estimate_cost_usd(step_prompt_total, step_completion_total)
 
     effective_step_workers = max(1, step_score_workers)
-    per_task_step_seconds = non_empty_rate * (llm_steps_per_non_empty / effective_step_workers) * STEP_SECONDS_PER_CALL
+    per_task_step_seconds = non_empty_rate * (llm_steps_per_non_empty / effective_step_workers) * step_seconds_per_call
     effective_context_parallelism = max(1.0, min(float(max(context_workers, 1)), 6.0))
     step_wall_seconds = (max_samples * per_task_step_seconds) / effective_context_parallelism
 
@@ -545,8 +804,17 @@ def build_estimate(
         f"Estimates scaled by ratio={scale:.4f} from source tasks to target tasks.",
         f"Eval stage assumes {EVAL_SECONDS_PER_TASK:.1f}s per task per side in parallel.",
         f"Error stage assumes {ERROR_SECONDS_PER_FAILED_TASK:.1f}s per failed task per side in parallel.",
-        f"Step scoring assumes prompt={STEP_PROMPT_TOKENS_PER_CALL:.0f} and completion={STEP_COMPLETION_TOKENS_PER_CALL:.0f} tokens per scored step.",
-        f"Step scoring assumes {STEP_SECONDS_PER_CALL:.1f}s latency per verifier call with {effective_step_workers} step workers.",
+        (
+            "Step scoring token and latency assumptions use empirical auxiliary-call profile "
+            f"from {step_profile.get('source_paths', [])}."
+            if not step_profile.get("fallback_used")
+            else (
+                "Step scoring token and latency assumptions use fallback defaults "
+                f"prompt={STEP_PROMPT_TOKENS_PER_CALL_FALLBACK:.0f}, completion={STEP_COMPLETION_TOKENS_PER_CALL_FALLBACK:.0f}, "
+                f"seconds={STEP_SECONDS_PER_CALL_FALLBACK:.1f}."
+            )
+        ),
+        f"Step scoring assumes {step_seconds_per_call:.2f}s latency per verifier call with {effective_step_workers} step workers.",
         f"Context parallelism factor for step overhead capped at {effective_context_parallelism:.1f}.",
     ])
 
@@ -576,6 +844,9 @@ def build_estimate(
                 "non_empty_rate": non_empty_rate,
                 "mean_steps": mean_steps,
                 "llm_steps_per_non_empty": llm_steps_per_non_empty,
+                "prompt_tokens_per_call": step_prompt_tokens_per_call,
+                "completion_tokens_per_call": step_completion_tokens_per_call,
+                "seconds_per_call": step_seconds_per_call,
             },
             "evaluation": {
                 "cost_usd": eval_cost,
@@ -602,6 +873,7 @@ def build_estimate(
         },
         "assumptions": assumptions,
         "step_inputs": step_inputs,
+        "step_profile": step_profile,
     }
 
 
@@ -624,21 +896,23 @@ def run_smoke(
     os.makedirs(smoke_output_dir, exist_ok = True)
     manifest_path = os.path.join(
         smoke_output_dir,
-        f"subset_manifest_v4_seed{seed}_n{smoke_samples}.json",
+        f"subset_manifest_v5_seed{seed}_n{smoke_samples}.json",
     )
-    baseline_path = os.path.join(smoke_output_dir, "baseline_v4.jsonl")
-    ace_path = os.path.join(smoke_output_dir, "ace_v4.jsonl")
-    report_json_path = os.path.join(smoke_output_dir, "comparison_report_v4.json")
+    baseline_path = os.path.join(smoke_output_dir, "baseline_v5.jsonl")
+    ace_path = os.path.join(smoke_output_dir, "ace_v5.jsonl")
+    report_json_path = os.path.join(smoke_output_dir, "comparison_report_v5.json")
 
     clear_paths = [
         baseline_path,
         ace_path,
-        os.path.join(smoke_output_dir, "ace_v4_metrics.json"),
-        os.path.join(smoke_output_dir, "baseline_v4_graded.jsonl"),
-        os.path.join(smoke_output_dir, "ace_v4_graded.jsonl"),
-        os.path.join(smoke_output_dir, "baseline_v4_graded_errors.jsonl"),
-        os.path.join(smoke_output_dir, "ace_v4_graded_errors.jsonl"),
-        os.path.join(smoke_output_dir, "comparison_report_v4.md"),
+        f"{ace_path}.progress.jsonl",
+        f"{ace_path}.complete.json",
+        os.path.join(smoke_output_dir, "ace_v5_metrics.json"),
+        os.path.join(smoke_output_dir, "baseline_v5_graded.jsonl"),
+        os.path.join(smoke_output_dir, "ace_v5_graded.jsonl"),
+        os.path.join(smoke_output_dir, "baseline_v5_graded_errors.jsonl"),
+        os.path.join(smoke_output_dir, "ace_v5_graded_errors.jsonl"),
+        os.path.join(smoke_output_dir, "comparison_report_v5.md"),
         report_json_path,
     ]
     for path in clear_paths:
@@ -648,7 +922,7 @@ def run_smoke(
     baseline_cmd = [
         sys.executable,
         "-m",
-        "benchmark.infer_baseline_v4",
+        "benchmark.v5.infer_baseline",
         "--manifest",
         os.path.abspath(manifest_path),
         "--max-samples",
@@ -664,7 +938,7 @@ def run_smoke(
     ace_cmd = [
         sys.executable,
         "-m",
-        "benchmark.infer_ace_direct_v4",
+        "benchmark.v5.infer_ace",
         "--manifest",
         os.path.abspath(manifest_path),
         "--max-samples",
@@ -715,7 +989,7 @@ def run_smoke(
     post_cmd = [
         sys.executable,
         "-m",
-        "benchmark.complete_v4_pipeline",
+        "benchmark.v5.complete_pipeline",
         "--output-dir",
         smoke_output_dir,
         "--max-samples",
@@ -734,9 +1008,13 @@ def run_smoke(
     report_payload = _load_json(report_json_path)
     baseline_metrics = report_payload.get("baseline_metrics", {})
     ace_metrics = report_payload.get("ace_metrics", {})
+    full_pipeline_metered = report_payload.get("full_pipeline_cost_metered", {})
 
     measured_inference_cost = _safe_float(baseline_metrics.get("cost_usd"), 0.0) + _safe_float(ace_metrics.get("cost_usd"), 0.0)
     measured_inference_tokens = _safe_float(baseline_metrics.get("total_tokens"), 0.0) + _safe_float(ace_metrics.get("total_tokens"), 0.0)
+    measured_full_pipeline_cost = _safe_float(full_pipeline_metered.get("combined_total_cost_usd"), 0.0)
+    if measured_full_pipeline_cost <= 0.0:
+        measured_full_pipeline_cost = measured_inference_cost
     measured_inference_seconds = max(0.0, inference_end - start_time)
     measured_total_seconds = max(0.0, end_time - start_time)
     measured_post_seconds = max(0.0, measured_total_seconds - measured_inference_seconds)
@@ -745,6 +1023,7 @@ def run_smoke(
     scaled_from_smoke = {
         "ratio": scaled_ratio,
         "inference_cost_usd": measured_inference_cost * scaled_ratio,
+        "full_pipeline_cost_usd": measured_full_pipeline_cost * scaled_ratio,
         "total_wall_seconds": measured_total_seconds * scaled_ratio,
     }
 
@@ -773,6 +1052,7 @@ def run_smoke(
         },
         "measured": {
             "inference_cost_usd": measured_inference_cost,
+            "full_pipeline_cost_usd": measured_full_pipeline_cost,
             "inference_total_tokens": measured_inference_tokens,
             "inference_wall_seconds": measured_inference_seconds,
             "post_wall_seconds": measured_post_seconds,

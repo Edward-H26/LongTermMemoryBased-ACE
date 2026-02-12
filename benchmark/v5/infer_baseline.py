@@ -8,7 +8,7 @@ V5 additions:
 - Resume-safe per-task writes with V5 artifact naming
 
 Usage:
-    python -m benchmark.infer_baseline_v5 \
+    python -m benchmark.v5.infer_baseline \
         --max-samples 200 \
         --seed 42 \
         --manifest benchmark/results/v5/subset_manifest_v5_seed42_n200.json \

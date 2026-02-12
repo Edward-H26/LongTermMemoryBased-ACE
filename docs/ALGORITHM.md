@@ -12,15 +12,15 @@ START -> router -> planner -> solver -> critic -> ace_learning -> END
 
 Core benchmark streams:
 
-- Baseline v3: `benchmark/infer_baseline_v3.py`
-- ACE direct v3: `benchmark/infer_ace_direct_v3.py`
-- One-command orchestration: `benchmark/run_v3.py`
-- Baseline v4: `benchmark/infer_baseline_v4.py`
-- ACE direct v4: `benchmark/infer_ace_direct_v4.py`
-- One-command orchestration (v4): `benchmark/run_v4.py`
-- Baseline v5: `benchmark/infer_baseline_v5.py`
-- ACE direct v5: `benchmark/infer_ace_direct_v5.py`
-- One-command orchestration (v5): `benchmark/run_v5.py`
+- Baseline v3: `benchmark/v3/infer_baseline.py`
+- ACE direct v3: `benchmark/v3/infer_ace.py`
+- One-command orchestration: `benchmark/v3/run.py`
+- Baseline v4: `benchmark/v4/infer_baseline.py`
+- ACE direct v4: `benchmark/v4/infer_ace.py`
+- One-command orchestration (v4): `benchmark/v4/run.py`
+- Baseline v5: `benchmark/v5/infer_baseline.py`
+- ACE direct v5: `benchmark/v5/infer_ace.py`
+- One-command orchestration (v5): `benchmark/v5/run.py`
 
 ## 2. Memory Model
 
@@ -176,7 +176,7 @@ If manifest does not exist:
 
 ## 6. Benchmark V3 Pipelines
 
-## 6.1 Baseline v3 (`benchmark/infer_baseline_v3.py`)
+## 6.1 Baseline v3 (`benchmark/v3/infer_baseline.py`)
 
 Flow:
 
@@ -187,7 +187,7 @@ Flow:
 5. Write one row per task:
    - `task_id`, `messages`, `model_output`, `rubrics`, `metadata`, `metrics`.
 
-## 6.2 ACE direct v3 (`benchmark/infer_ace_direct_v3.py`)
+## 6.2 ACE direct v3 (`benchmark/v3/infer_ace.py`)
 
 Flow:
 
@@ -211,12 +211,12 @@ Row-level metrics include:
 - `ace_delta`,
 - `quality_gate`.
 
-## 6.3 One-command v3 orchestration (`benchmark/run_v3.py`)
+## 6.3 One-command v3 orchestration (`benchmark/v3/run.py`)
 
 Default command:
 
 ```bash
-python -m benchmark.run_v3 \
+python -m benchmark.v3.run \
   --manifest benchmark/results/v3/subset_manifest_v3_seed42_n200.json \
   --max-samples 200 \
   --seed 42
@@ -228,12 +228,12 @@ Default behavior:
 2. Clear Neo4j (unless `--no-clear-db`).
 3. Run baseline v3 and ACE v3 inference in parallel.
 4. Enforce completion check against requested sample count.
-5. If `--with-report` (default true), call `benchmark.complete_v3_pipeline --skip-wait`.
+5. If `--with-report` (default true), call `benchmark.v3.complete_pipeline --skip-wait`.
 
-`benchmark.complete_v3_pipeline.py` currently uses fixed `TARGET = 200`.
+`benchmark/v3/complete_pipeline.py` currently uses fixed `TARGET = 200`.
 For non-200 subset runs, use `--no-with-report` and run eval/error/compare manually.
 
-## 6.4 Benchmark v4 (`benchmark/infer_baseline_v4.py`, `benchmark/infer_ace_direct_v4.py`)
+## 6.4 Benchmark v4 (`benchmark/v4/infer_baseline.py`, `benchmark/v4/infer_ace.py`)
 
 V4 keeps deterministic sampling and adds:
 
@@ -260,12 +260,12 @@ New v4 metrics include:
 - `empty_output_retry_count`
 - `step_scoring`
 
-## 6.5 One-command v4 orchestration (`benchmark/run_v4.py`)
+## 6.5 One-command v4 orchestration (`benchmark/v4/run.py`)
 
 Default command:
 
 ```bash
-python -m benchmark.run_v4 \
+python -m benchmark.v4.run \
   --manifest benchmark/results/v4/subset_manifest_v4_seed42_n200.json \
   --max-samples 200 \
   --seed 42 \
@@ -278,9 +278,9 @@ Default behavior:
 2. Clear Neo4j (unless `--no-clear-db`).
 3. Run baseline v4 and ACE v4 inference in parallel.
 4. Enforce completion check against requested sample count.
-5. If `--with-report` (default true), call `benchmark.complete_v4_pipeline --output-dir ... --skip-wait --max-samples ...`.
+5. If `--with-report` (default true), call `benchmark.v4.complete_pipeline --output-dir ... --skip-wait --max-samples ...`.
 
-### 6.5.1 Dual preflight support (`benchmark/preflight_v4.py`)
+### 6.5.1 Dual preflight support (`benchmark/v4/preflight.py`)
 
 `run_v4` supports a preflight branch controlled by:
 
@@ -306,7 +306,7 @@ Preflight flow:
 
 This prevents accidental full-dataset execution from invalid command arguments.
 
-## 6.6 Benchmark v5 reliability extensions (`benchmark/infer_baseline_v5.py`, `benchmark/infer_ace_direct_v5.py`)
+## 6.6 Benchmark v5 reliability extensions (`benchmark/v5/infer_baseline.py`, `benchmark/v5/infer_ace.py`)
 
 V5 keeps v4 scoring behavior and adds fault tolerance and resumability:
 
@@ -333,12 +333,12 @@ New v5 runtime metrics include:
 - `memory_write_failed`
 - `memory_error`
 
-## 6.7 One-command v5 orchestration (`benchmark/run_v5.py`)
+## 6.7 One-command v5 orchestration (`benchmark/v5/run.py`)
 
 Default command:
 
 ```bash
-python -m benchmark.run_v5 \
+python -m benchmark.v5.run \
   --manifest benchmark/results/v5/subset_manifest_v5_seed42_n200.json \
   --max-samples 200 \
   --seed 42 \
@@ -352,9 +352,9 @@ Default behavior:
 3. Run baseline v5 and ACE v5 inference in parallel.
 4. Write and maintain `benchmark/results/v5/run_v5_meta.json` with phase start and end timestamps.
 5. Enforce completion check against requested sample count.
-6. If `--with-report` (default true), call `benchmark.complete_v5_pipeline --output-dir ... --skip-wait --max-samples ...` and pass dual-source cost flags and run metadata path.
+6. If `--with-report` (default true), call `benchmark.v5.complete_pipeline --output-dir ... --skip-wait --max-samples ...` and pass dual-source cost flags and run metadata path.
 
-### 6.7.1 V5 preflight (`benchmark/preflight_v5.py`)
+### 6.7.1 V5 preflight (`benchmark/v5/preflight.py`)
 
 `run_v5` preflight options:
 
@@ -369,7 +369,7 @@ In `auto` estimate mode, source priority is `v4` report data first, then `v5`, t
 Step-scoring token and latency assumptions use empirical auxiliary-call profiles from `ace_v*_metrics.json` when available, with explicit fallback defaults when missing.
 Smoke measured-cost scaling prefers full-pipeline measured cost from `comparison_report_v5.json.full_pipeline_cost_metered.combined_total_cost_usd`, with inference-only fallback when absent.
 
-### 6.7.2 V5 post-inference pipeline (`benchmark/complete_v5_pipeline.py`)
+### 6.7.2 V5 post-inference pipeline (`benchmark/v5/complete_pipeline.py`)
 
 V5 post pipeline runs:
 

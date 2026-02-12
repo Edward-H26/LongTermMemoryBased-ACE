@@ -6,7 +6,7 @@ for prior tasks in multi-turn sequences), matching the official CL-bench
 infer.py protocol.
 
 Usage:
-    python -m benchmark.infer_baseline_v2 --max-samples 200 --output benchmark/results/v2/baseline_v2.jsonl
+    python -m benchmark.v2.infer_baseline --max-samples 200 --output benchmark/results/v2/baseline_v2.jsonl
 """
 
 import json

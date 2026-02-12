@@ -5,7 +5,7 @@ Adds deterministic seeded sampling with optional manifest reuse so
 baseline and ACE runs can share the exact same subset and order.
 
 Usage:
-    python -m benchmark.infer_baseline_v3 \
+    python -m benchmark.v3.infer_baseline \
         --max-samples 200 \
         --seed 42 \
         --manifest benchmark/results/v3/subset_manifest_v3_seed42_n200.json \

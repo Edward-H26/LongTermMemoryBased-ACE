@@ -5,7 +5,7 @@ Clears results and Neo4j database by default. Use --no-clear-results and
 --no-clear-db to resume existing runs.
 
 Usage:
-    python -m benchmark.run_v3 \
+    python -m benchmark.v3.run \
         --manifest benchmark/results/v3/subset_manifest_v3_seed42_n200.json \
         --max-samples 200 \
         --seed 42
@@ -97,7 +97,7 @@ def main():
     ace_abs = os.path.abspath(ace_path)
 
     baseline_cmd = [
-        sys.executable, "-m", "benchmark.infer_baseline_v3",
+        sys.executable, "-m", "benchmark.v3.infer_baseline",
         "--manifest", manifest_abs,
         "--max-samples", str(args.max_samples),
         "--seed", str(args.seed),
@@ -105,7 +105,7 @@ def main():
         "--no-clear-results",
     ]
     ace_cmd = [
-        sys.executable, "-m", "benchmark.infer_ace_direct_v3",
+        sys.executable, "-m", "benchmark.v3.infer_ace",
         "--manifest", manifest_abs,
         "--max-samples", str(args.max_samples),
         "--seed", str(args.seed),
@@ -141,7 +141,7 @@ def main():
 
     if args.with_report:
         subprocess.run(
-            [sys.executable, "-m", "benchmark.complete_v3_pipeline", "--skip-wait"],
+            [sys.executable, "-m", "benchmark.v3.complete_pipeline", "--skip-wait"],
             check=True,
         )
 

@@ -7,7 +7,7 @@ V4 additions:
 - Deterministic manifest reuse support
 
 Usage:
-    python -m benchmark.infer_baseline_v4 \
+    python -m benchmark.v4.infer_baseline \
         --max-samples 200 \
         --seed 42 \
         --manifest benchmark/results/v4/subset_manifest_v4_seed42_n200.json \
