@@ -24,9 +24,22 @@ import os
 
 DEFAULT_MEMORY_STRENGTH = float(os.getenv("ACE_MEMORY_BASE_STRENGTH", "100.0"))
 
-RELEVANCE_WEIGHT = float(os.getenv("ACE_WEIGHT_RELEVANCE", "0.25"))
-STRENGTH_WEIGHT = float(os.getenv("ACE_WEIGHT_STRENGTH", "0.55"))
+RELEVANCE_WEIGHT = float(os.getenv("ACE_WEIGHT_RELEVANCE", "0.60"))
+STRENGTH_WEIGHT = float(os.getenv("ACE_WEIGHT_STRENGTH", "0.20"))
 TYPE_WEIGHT = float(os.getenv("ACE_WEIGHT_TYPE", "0.20"))
+SEED_PENALTY = float(os.getenv("ACE_SEED_BULLET_PENALTY", "0.25"))
+LEARNED_BONUS = float(os.getenv("ACE_LEARNED_BULLET_BONUS", "0.08"))
+
+
+def _safe_env_int(name: str, default: int) -> int:
+    value = os.getenv(name)
+    if value is None:
+        return default
+    try:
+        parsed = int(value)
+    except Exception:
+        return default
+    return parsed if parsed >= 0 else default
 
 
 @dataclass
@@ -722,6 +735,11 @@ class ACEMemory:
                     self.categories[tag].remove(bullet_id)
             self._unregister_bullet(bullet_id)
 
+    @staticmethod
+    def _is_seed_bullet(bullet: Bullet) -> bool:
+        tags = {tag.lower() for tag in (bullet.tags or [])}
+        return "meta_strategy" in tags
+
     def retrieve_relevant_bullets(
         self,
         query: str,
@@ -735,6 +753,7 @@ class ACEMemory:
         context_scope_id: Optional[str] = None,
     ) -> List[Bullet]:
         facets = facets or {}
+        min_learned_bullets = _safe_env_int("ACE_MIN_LEARNED_BULLETS", 2)
 
         if tags:
             candidate_ids = set()
@@ -791,6 +810,10 @@ class ACEMemory:
                 bonus += 0.2
             if persona and persona in bullet_tags:
                 bonus += 0.1
+            if self._is_seed_bullet(bullet):
+                bonus -= SEED_PENALTY
+            else:
+                bonus += LEARNED_BONUS
 
             combined_score = (
                 RELEVANCE_WEIGHT * relevance +
@@ -801,7 +824,28 @@ class ACEMemory:
             scored_bullets.append((combined_score, bullet))
 
         scored_bullets.sort(key=lambda x: x[0], reverse=True)
-        top_bullets = [bullet for _, bullet in scored_bullets[:top_k]]
+        top_bullets: List[Bullet] = []
+        selected_ids = set()
+
+        if min_learned_bullets > 0 and top_k > 0:
+            for _, bullet in scored_bullets:
+                if self._is_seed_bullet(bullet):
+                    continue
+                if bullet.id in selected_ids:
+                    continue
+                top_bullets.append(bullet)
+                selected_ids.add(bullet.id)
+                if len(top_bullets) >= min(min_learned_bullets, top_k):
+                    break
+
+        for _, bullet in scored_bullets:
+            if bullet.id in selected_ids:
+                continue
+            top_bullets.append(bullet)
+            selected_ids.add(bullet.id)
+            if len(top_bullets) >= top_k:
+                break
+
         self._touch_bullets(top_bullets)
         return top_bullets
 

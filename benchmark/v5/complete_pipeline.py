@@ -175,6 +175,7 @@ def main() -> None:
     ace_eval_metrics_path = os.path.join(args.output_dir, "ace_v5_graded_eval_metrics.json")
     baseline_error_metrics_path = os.path.join(args.output_dir, "baseline_v5_graded_errors_error_metrics.json")
     ace_error_metrics_path = os.path.join(args.output_dir, "ace_v5_graded_errors_error_metrics.json")
+    policy_replay_path = os.path.join(args.output_dir, "policy_replay_v5.json")
     run_meta_path = args.run_meta or os.path.join(args.output_dir, "run_v5_meta.json")
 
     if not args.skip_wait:
@@ -239,6 +240,28 @@ def main() -> None:
             f"baseline={_count_lines(baseline_graded_path)}/{args.max_samples}, "
             f"ace={_count_lines(ace_graded_path)}/{args.max_samples}"
         )
+
+    print("Replaying terminal rewards into planner policy...")
+    _mark_phase_start(run_meta_path, "policy_replay")
+    subprocess.run(
+        [
+            sys.executable,
+            "-m",
+            "benchmark.v5.policy_replay",
+            "--baseline-graded",
+            baseline_graded_path,
+            "--ace-graded",
+            ace_graded_path,
+            "--output",
+            policy_replay_path,
+            "--output-dir",
+            args.output_dir,
+            "--mode",
+            "both",
+        ],
+        check = True,
+    )
+    _mark_phase_end(run_meta_path, "policy_replay")
 
     print("Running error analysis in parallel...")
     _mark_phase_start(run_meta_path, "error_analysis")

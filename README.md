@@ -57,33 +57,42 @@ All configuration is via environment variables (set in `.env`):
 | `NEO4J_USERNAME` | | Neo4j username |
 | `NEO4J_PASSWORD` | | Neo4j password |
 | `ACE_INJECTION_MODE` | `post_context` | Bullet injection: `post_context` or `pre_context` |
-| `ACE_WEIGHT_RELEVANCE` | `0.25` | Retrieval relevance weight (0.55 for CL-bench) |
-| `ACE_WEIGHT_STRENGTH` | `0.55` | Retrieval strength weight (0.25 for CL-bench) |
+| `ACE_WEIGHT_RELEVANCE` | `0.60` | Retrieval relevance weight |
+| `ACE_WEIGHT_STRENGTH` | `0.20` | Retrieval strength weight |
 | `ACE_WEIGHT_TYPE` | `0.20` | Retrieval type priority weight |
 | `ACE_SEED_META_STRATEGIES` | `true` | Pre-seed meta-strategy bullets |
+| `ACE_SEED_GLOBAL_META_STRATEGIES` | `false` | Pre-seed global memory with meta-strategy bullets |
+| `ACE_MIN_LEARNED_BULLETS` | `2` | Minimum learned bullets to preserve in top-k retrieval |
 | `ACE_LLM_TEMPERATURE` | `0.2` | Temperature for ACE pipeline LLM calls |
 | `ACE_CURATOR_USE_LLM` | `false` | Use LLM for curation (false = heuristic) |
 | `ACE_CURATOR_SIMILARITY` | `0.9` | Similarity threshold for bullet deduplication |
-| `ACE_QG_GATE_SCORE_MIN` | `0.65` | Minimum task gate score to apply online memory update |
-| `ACE_QG_LESSON_SCORE_MIN` | `0.60` | Minimum per-lesson quality score for acceptance |
-| `ACE_QG_OVERLAP_MIN` | `0.10` | Minimum question-lesson overlap score for acceptance |
-| `ACE_QG_MAX_ACCEPTED_LESSONS` | `2` | Maximum accepted lessons per task before curation |
+| `ACE_QG_GATE_SCORE_MIN` | `0.60` | Minimum task gate score to apply online memory update |
+| `ACE_QG_LESSON_SCORE_MIN` | `0.55` | Minimum per-lesson quality score for acceptance |
+| `ACE_QG_OVERLAP_MIN` | `0.05` | Minimum question-lesson overlap score for acceptance |
+| `ACE_QG_CONFIDENCE_MIN` | `0.70` | Minimum blended lesson confidence for acceptance |
+| `ACE_QG_MAX_ACCEPTED_LESSONS` | `4` | Maximum accepted lessons per task before curation |
 | `ACE_MEMORY_SCOPE_MODE` | `hybrid` | V4 memory mode: `hybrid`, `local`, or `global` |
 | `ACE_GLOBAL_GATE_SCORE_MIN` | `0.80` | Minimum gate score required before global memory update |
-| `ACE_LOCAL_TOP_K` | `3` | Number of local-context bullets retrieved in V4 |
-| `ACE_GLOBAL_TOP_K` | `2` | Number of global bullets retrieved in V4 |
+| `ACE_LOCAL_TOP_K` | `8` | Number of local-context bullets retrieved in V5 |
+| `ACE_GLOBAL_TOP_K` | `5` | Number of global bullets retrieved in V5 |
 | `ACE_CONTEXT_WORKERS` | `6` | V4 context-level parallel worker count |
-| `ACE_STEP_SCORING_MODE` | `near_full` | Process scoring mode: `off`, `near_full`, or `full` |
+| `ACE_STEP_SCORING_MODE` | `full` | Process scoring mode: `off`, `near_full`, or `full` |
 | `ACE_STEP_SCORER_MODEL` | `gpt-5.1` | Verifier model for intermediate step scoring |
-| `ACE_STEP_SCORE_WORKERS` | `8` | Worker count for parallel step scoring |
-| `ACE_STEP_SCORE_MIN` | `0.45` | ToT pruning threshold for mean intermediate step score |
-| `ACE_MAX_COMPLETION_TOKENS` | `8192` | Default max completion tokens for V4 inference |
-| `ACE_EMPTY_OUTPUT_RETRY_MAX_TOKENS` | `16384` | Retry cap when completion was empty at token limit |
+| `ACE_STEP_SCORE_WORKERS` | `12` | Worker count for parallel step scoring |
+| `ACE_STEP_SCORE_MIN` | `0.40` | ToT pruning threshold for mean intermediate step score |
+| `ACE_MAX_COMPLETION_TOKENS` | `16384` | Default max completion tokens for V5 inference |
+| `ACE_EMPTY_OUTPUT_RETRY_MAX_TOKENS` | `32768` | Retry cap when completion was empty at token limit |
+| `ACE_PLANNER_POLICY` | `bandit` | Runtime and benchmark planner policy mode |
+| `ACE_PLANNER_EPSILON` | `0.08` | Planner epsilon-greedy exploration rate |
+| `ACE_PLANNER_UCB_C` | `1.10` | Planner UCB exploration constant |
+| `ACE_RECURSION_MAX_ROUNDS` | `2` | Maximum recursive reasoning rounds |
+| `ACE_RECURSION_CANDIDATES` | `3` | Candidate count per recursion round |
+| `ACE_RECURSION_IMPROVE_MIN` | `0.03` | Minimum score improvement to continue recursion |
 | `ACE_NEO4J_RETRY_MAX` | `2` | Neo4j operation retries after first attempt |
 | `ACE_NEO4J_RETRY_BACKOFF_SEC` | `1.0` | Exponential backoff base seconds for Neo4j retries |
 | `ACE_NEO4J_RECONNECT_ON_SESSION_EXPIRED` | `true` | Reconnect Neo4j driver when `SessionExpired` occurs |
-| `ACE_V5_RESUME_FROM_PROGRESS` | `true` | Default for `infer_ace_direct_v5 --resume-from-progress` |
-| `ACE_V5_FINALIZE_ORDER` | `true` | Default for `infer_ace_direct_v5 --finalize-order` |
+| `ACE_V5_RESUME_FROM_PROGRESS` | `true` | Default for `benchmark.v5.infer_ace --resume-from-progress` |
+| `ACE_V5_FINALIZE_ORDER` | `true` | Default for `benchmark.v5.infer_ace --finalize-order` |
 | `ACE_V5_PROGRESS_PATH` | unset | Optional default path for ACE v5 progress journal |
 | `OPENAI_ADMIN_API_KEY` | unset | OpenAI admin key used for strict billed-cost reconciliation |
 | `OPENAI_COST_PROJECT_ID` | unset | OpenAI project scope used for billed-cost reconciliation |
@@ -119,13 +128,14 @@ python analyze_memory.py interactive           # Interactive mode
 
 ## CL-bench Benchmarking (V5 Recommended)
 
-The v5 pipeline keeps v4 model behavior and adds reliability features for long runs:
+The v5 pipeline adds reliability and max-quality planning features for long runs:
 
 - Neo4j retry + reconnect handling for `SessionExpired`/driver failures.
 - Context-parallel ACE with per-task durable progress journaling.
 - Resume from output + progress journal without reprocessing completed tasks.
 - Deterministic finalize-order output reconstruction from manifest order.
 - Parallel post-pipeline stages with side-specific retries.
+- Planner-policy replay from graded outcomes plus planner diagnostics in comparison report.
 - Full-pipeline actual metered cost reporting across inference, ACE auxiliary calls, eval, and error analysis.
 - Strict OpenAI billed-cost reconciliation against run window metadata.
 
@@ -215,7 +225,7 @@ python -m benchmark.v5.run \
 
 ### V5 ACE resume controls
 
-`infer_ace_direct_v5` adds durability/resume flags:
+`benchmark.v5.infer_ace` adds durability/resume flags:
 
 - `--progress-path` default `<output>.progress.jsonl`
 - `--resume-from-progress` default `true`
@@ -269,10 +279,13 @@ python -m benchmark.v5.run \
 - `benchmark/results/v5/ace_v5_graded_errors.jsonl`
 - `benchmark/results/v5/baseline_v5_graded_errors_error_metrics.json`
 - `benchmark/results/v5/ace_v5_graded_errors_error_metrics.json`
+- `benchmark/results/v5/policy_replay_v5.json`
 - `benchmark/results/v5/comparison_report_v5.md`
 - `benchmark/results/v5/comparison_report_v5.json`
 - `benchmark/results/v5/ace_v5.jsonl.progress.jsonl`
 - `benchmark/results/v5/ace_v5.jsonl.complete.json`
+- `benchmark/results/v5/planner_policy_baseline_v5.json`
+- `benchmark/results/v5/planner_policy_ace_v5.json`
 - `benchmark/results/v5/run_v5_meta.json`
 
 When publishing to GitHub, use the allowlist above and avoid publishing raw JSONL artifacts.

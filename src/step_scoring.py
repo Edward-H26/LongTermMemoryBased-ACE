@@ -26,10 +26,10 @@ JSON_OBJECT_PATTERN = re.compile(r"\{.*\}", re.DOTALL)
 
 @dataclass
 class StepScoringConfig:
-    mode: str = "near_full"
+    mode: str = "full"
     scorer_model: str = "gpt-5.1"
-    workers: int = 8
-    min_score: float = 0.45
+    workers: int = 12
+    min_score: float = 0.40
     llm_weight: float = 0.85
     deterministic_weight: float = 0.15
     max_steps_with_full_llm: int = 24
@@ -52,10 +52,10 @@ class StepScoringConfig:
     @classmethod
     def from_env(cls) -> "StepScoringConfig":
         return cls(
-            mode = str(os.getenv("ACE_STEP_SCORING_MODE", "near_full")).strip().lower(),
+            mode = str(os.getenv("ACE_STEP_SCORING_MODE", "full")).strip().lower(),
             scorer_model = str(os.getenv("ACE_STEP_SCORER_MODEL", "gpt-5.1")).strip(),
-            workers = cls._safe_int(os.getenv("ACE_STEP_SCORE_WORKERS", "8"), 8),
-            min_score = cls._safe_float(os.getenv("ACE_STEP_SCORE_MIN", "0.45"), 0.45),
+            workers = cls._safe_int(os.getenv("ACE_STEP_SCORE_WORKERS", "12"), 12),
+            min_score = cls._safe_float(os.getenv("ACE_STEP_SCORE_MIN", "0.40"), 0.40),
         )
 
     @classmethod
@@ -263,6 +263,10 @@ def score_steps(
             "mean_step_score": 0.0,
             "min_step_score": 0.0,
             "max_step_score": 0.0,
+            "mean_step_confidence": 0.0,
+            "min_step_confidence": 0.0,
+            "max_step_confidence": 0.0,
+            "overall_confidence": 0.0,
             "steps": [],
         }
     if not safe_steps:
@@ -278,6 +282,10 @@ def score_steps(
             "mean_step_score": 0.0,
             "min_step_score": 0.0,
             "max_step_score": 0.0,
+            "mean_step_confidence": 0.0,
+            "min_step_confidence": 0.0,
+            "max_step_confidence": 0.0,
+            "overall_confidence": 0.0,
             "steps": [],
         }
 
@@ -308,6 +316,7 @@ def score_steps(
 
     rows: List[Dict[str, Any]] = []
     combined_scores: List[float] = []
+    confidence_scores: List[float] = []
     for idx, step in enumerate(safe_steps):
         deterministic_score = _deterministic_step_score(
             question = question,
@@ -319,23 +328,29 @@ def score_steps(
 
         if llm_score is None:
             final_score = deterministic_score
+            confidence = _clamp(0.55 + 0.45 * deterministic_score)
         else:
             final_score = _clamp(
                 cfg.llm_weight * llm_score + cfg.deterministic_weight * deterministic_score
             )
+            agreement = _clamp(1.0 - abs(llm_score - deterministic_score))
+            confidence = _clamp(0.5 * agreement + 0.5 * final_score)
 
         combined_scores.append(final_score)
+        confidence_scores.append(confidence)
         rows.append({
             "index": idx,
             "step": step,
             "deterministic_score": deterministic_score,
             "llm_score": llm_score,
             "score": final_score,
+            "confidence": confidence,
             "selected_for_llm": bool(llm_mask[idx]),
             "llm_reason": llm_reason,
         })
 
     mean_score = sum(combined_scores) / len(combined_scores)
+    mean_confidence = sum(confidence_scores) / len(confidence_scores)
     return {
         "config": {
             "mode": cfg.mode,
@@ -348,6 +363,10 @@ def score_steps(
         "mean_step_score": mean_score,
         "min_step_score": min(combined_scores),
         "max_step_score": max(combined_scores),
+        "mean_step_confidence": mean_confidence,
+        "min_step_confidence": min(confidence_scores),
+        "max_step_confidence": max(confidence_scores),
+        "overall_confidence": _clamp(0.6 * mean_confidence + 0.4 * mean_score),
         "steps": rows,
     }
 
@@ -392,6 +411,10 @@ def score_reasoning_candidates(
                     "mean_step_score": 0.0,
                     "min_step_score": 0.0,
                     "max_step_score": 0.0,
+                    "mean_step_confidence": 0.0,
+                    "min_step_confidence": 0.0,
+                    "max_step_confidence": 0.0,
+                    "overall_confidence": 0.0,
                     "steps": [],
                     "error": str(exc),
                 }

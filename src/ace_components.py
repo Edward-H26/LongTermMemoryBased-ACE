@@ -51,10 +51,11 @@ class ExecutionTrace:
 
 @dataclass
 class QualityGateConfig:
-    gate_score_min: float = 0.65
-    lesson_score_min: float = 0.60
-    overlap_min: float = 0.10
-    max_accepted_lessons: int = 2
+    gate_score_min: float = 0.60
+    lesson_score_min: float = 0.55
+    overlap_min: float = 0.05
+    confidence_min: float = 0.70
+    max_accepted_lessons: int = 4
 
     @staticmethod
     def _safe_float(value: Any, default: float) -> float:
@@ -74,10 +75,11 @@ class QualityGateConfig:
     @classmethod
     def from_env(cls) -> "QualityGateConfig":
         return cls(
-            gate_score_min = cls._safe_float(os.getenv("ACE_QG_GATE_SCORE_MIN", "0.65"), 0.65),
-            lesson_score_min = cls._safe_float(os.getenv("ACE_QG_LESSON_SCORE_MIN", "0.60"), 0.60),
-            overlap_min = cls._safe_float(os.getenv("ACE_QG_OVERLAP_MIN", "0.10"), 0.10),
-            max_accepted_lessons = cls._safe_int(os.getenv("ACE_QG_MAX_ACCEPTED_LESSONS", "2"), 2),
+            gate_score_min = cls._safe_float(os.getenv("ACE_QG_GATE_SCORE_MIN", "0.60"), 0.60),
+            lesson_score_min = cls._safe_float(os.getenv("ACE_QG_LESSON_SCORE_MIN", "0.55"), 0.55),
+            overlap_min = cls._safe_float(os.getenv("ACE_QG_OVERLAP_MIN", "0.05"), 0.05),
+            confidence_min = cls._safe_float(os.getenv("ACE_QG_CONFIDENCE_MIN", "0.70"), 0.70),
+            max_accepted_lessons = cls._safe_int(os.getenv("ACE_QG_MAX_ACCEPTED_LESSONS", "4"), 4),
         )
 
 
@@ -102,6 +104,29 @@ def _lesson_overlap_score(question: str, lesson_content: str) -> float:
     return intersection / union
 
 
+def _lesson_relevance_score(question: str, lesson_content: str) -> float:
+    question_tokens = _tokenize_text(question)
+    lesson_tokens = _tokenize_text(lesson_content)
+    if not question_tokens or not lesson_tokens:
+        return 0.0
+    intersection = len(question_tokens.intersection(lesson_tokens))
+    if intersection == 0:
+        return 0.0
+
+    lexical_jaccard = _lesson_overlap_score(question, lesson_content)
+    precision = intersection / max(len(lesson_tokens), 1)
+    recall = intersection / max(len(question_tokens), 1)
+    if precision + recall > 0:
+        f1_overlap = (2 * precision * recall) / (precision + recall)
+    else:
+        f1_overlap = 0.0
+    coverage = intersection / max(min(len(question_tokens), len(lesson_tokens)), 1)
+    return min(
+        0.50 * lexical_jaccard + 0.30 * f1_overlap + 0.20 * coverage,
+        1.0,
+    )
+
+
 def _lesson_quality_score(lesson: Dict[str, Any]) -> float:
     content = str(lesson.get("content", "")).strip()
     if not content:
@@ -121,16 +146,42 @@ def _lesson_quality_score(lesson: Dict[str, Any]) -> float:
     return min(token_score + tags_score + type_score, 1.0)
 
 
+def _lesson_confidence_score(
+    lesson: Dict[str, Any],
+    relevance_score: float,
+    lesson_score: float,
+    verifier_score: float = 0.0,
+) -> float:
+    if verifier_score <= 0.0:
+        verifier_score = 0.5 * lesson_score + 0.5 * relevance_score
+    return min(
+        0.45 * lesson_score + 0.40 * relevance_score + 0.15 * max(min(verifier_score, 1.0), 0.0),
+        1.0,
+    )
+
+
 def apply_quality_gate(
     question: str,
     model_answer: str,
     lessons: List[Dict[str, Any]],
+    step_summary: Optional[Dict[str, Any]] = None,
     config: Optional[QualityGateConfig] = None,
 ) -> Dict[str, Any]:
     cfg = config or QualityGateConfig.from_env()
     output_valid = bool(model_answer and str(model_answer).strip())
+    step_confidence = 0.0
+    if isinstance(step_summary, dict):
+        step_confidence = float(step_summary.get("overall_confidence", 0.0) or 0.0)
+    elif lessons:
+        confidence_candidates = []
+        for lesson in lessons:
+            raw = lesson.get("confidence")
+            if isinstance(raw, (int, float)):
+                confidence_candidates.append(float(raw))
+        if confidence_candidates:
+            step_confidence = sum(confidence_candidates) / len(confidence_candidates)
 
-    accepted_candidates: List[Tuple[float, float, Dict[str, Any]]] = []
+    accepted_candidates: List[Tuple[float, float, float, Dict[str, Any]]] = []
     rejected_entries: List[Dict[str, Any]] = []
 
     for idx, lesson in enumerate(lessons):
@@ -144,44 +195,72 @@ def apply_quality_gate(
             })
             continue
 
-        overlap_score = _lesson_overlap_score(question, content)
+        relevance_score = _lesson_relevance_score(question, content)
+        lexical_overlap = _lesson_overlap_score(question, content)
         lesson_score = _lesson_quality_score(lesson)
+        confidence_score = _lesson_confidence_score(
+            lesson = lesson,
+            relevance_score = relevance_score,
+            lesson_score = lesson_score,
+            verifier_score = step_confidence,
+        )
         rejection_reasons: List[str] = []
 
-        if overlap_score < cfg.overlap_min:
+        if relevance_score < cfg.overlap_min:
             rejection_reasons.append("low_overlap")
         if lesson_score < cfg.lesson_score_min:
             rejection_reasons.append("low_quality")
+        if confidence_score < cfg.confidence_min:
+            rejection_reasons.append("low_confidence")
 
         if rejection_reasons:
             rejected_entries.append({
                 "index": idx,
                 "reason": ",".join(rejection_reasons),
-                "overlap_score": overlap_score,
+                "overlap_score": relevance_score,
+                "lexical_overlap_score": lexical_overlap,
                 "lesson_score": lesson_score,
+                "confidence_score": confidence_score,
             })
             continue
 
         lesson_copy = dict(lesson)
         lesson_copy["quality_gate"] = {
-            "overlap_score": overlap_score,
+            "overlap_score": relevance_score,
+            "lexical_overlap_score": lexical_overlap,
             "lesson_score": lesson_score,
+            "confidence_score": confidence_score,
         }
-        accepted_candidates.append((lesson_score, overlap_score, lesson_copy))
+        accepted_candidates.append((confidence_score, lesson_score, relevance_score, lesson_copy))
 
-    accepted_candidates.sort(key = lambda row: (row[0], row[1]), reverse = True)
-    accepted_lessons = [row[2] for row in accepted_candidates[:cfg.max_accepted_lessons]]
+    accepted_candidates.sort(key = lambda row: (row[0], row[1], row[2]), reverse = True)
+    accepted_lessons = [row[3] for row in accepted_candidates[:cfg.max_accepted_lessons]]
 
-    accepted_scores = [row[0] for row in accepted_candidates[:cfg.max_accepted_lessons]]
-    accepted_quality_avg = sum(accepted_scores) / len(accepted_scores) if accepted_scores else 0.0
+    accepted_quality_scores = [row[1] for row in accepted_candidates[:cfg.max_accepted_lessons]]
+    accepted_confidence_scores = [row[0] for row in accepted_candidates[:cfg.max_accepted_lessons]]
+    accepted_relevance_scores = [row[2] for row in accepted_candidates[:cfg.max_accepted_lessons]]
+    accepted_quality_avg = sum(accepted_quality_scores) / len(accepted_quality_scores) if accepted_quality_scores else 0.0
+    accepted_confidence_avg = (
+        sum(accepted_confidence_scores) / len(accepted_confidence_scores)
+        if accepted_confidence_scores else 0.0
+    )
+    accepted_relevance_avg = (
+        sum(accepted_relevance_scores) / len(accepted_relevance_scores)
+        if accepted_relevance_scores else 0.0
+    )
     output_score = 1.0 if output_valid else 0.0
-    gate_score = 0.5 * output_score + 0.5 * accepted_quality_avg
+    gate_score = (
+        0.35 * output_score +
+        0.35 * accepted_quality_avg +
+        0.30 * accepted_confidence_avg
+    )
     should_apply_update = bool(accepted_lessons) and gate_score >= cfg.gate_score_min
 
     rejection_counts: Dict[str, int] = {
         "empty_content": 0,
         "low_overlap": 0,
         "low_quality": 0,
+        "low_confidence": 0,
     }
     for entry in rejected_entries:
         reasons = str(entry.get("reason", "")).split(",")
@@ -194,11 +273,15 @@ def apply_quality_gate(
             "gate_score_min": cfg.gate_score_min,
             "lesson_score_min": cfg.lesson_score_min,
             "overlap_min": cfg.overlap_min,
+            "confidence_min": cfg.confidence_min,
             "max_accepted_lessons": cfg.max_accepted_lessons,
         },
         "output_valid": output_valid,
         "output_score": output_score,
         "accepted_quality_avg": accepted_quality_avg,
+        "accepted_confidence_avg": accepted_confidence_avg,
+        "accepted_relevance_avg": accepted_relevance_avg,
+        "step_confidence": step_confidence,
         "gate_score": gate_score,
         "should_apply_update": should_apply_update,
         "num_lessons_input": len(lessons),
@@ -585,10 +668,19 @@ class ACEPipeline:
         topic = scratch_state.get("topic")
 
         facets = scratch_state.get("ace_retrieval_facets") if isinstance(scratch_state, dict) else None
+        step_summary = {}
+        direct_step_summary = metadata.get("step_scoring") if isinstance(metadata, dict) else None
+        if isinstance(direct_step_summary, dict):
+            step_summary = direct_step_summary
+        elif isinstance(scratch_state, dict):
+            scratch_step_summary = scratch_state.get("latest_step_scoring") or scratch_state.get("step_scoring")
+            if isinstance(scratch_step_summary, dict):
+                step_summary = scratch_step_summary
         quality_gate_eval = apply_quality_gate(
             question = trace.question,
             model_answer = trace.model_answer,
             lessons = lessons,
+            step_summary = step_summary,
             config = QualityGateConfig.from_env(),
         )
         accepted_lessons = quality_gate_eval.get("accepted_lessons", [])

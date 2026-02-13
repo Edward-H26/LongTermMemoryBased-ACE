@@ -39,7 +39,9 @@ from benchmark.sampling import (
 from src.ace_components import Curator, ExecutionTrace, QualityGateConfig, Reflector, apply_quality_gate
 from src.ace_memory import ACEMemory, Bullet
 from src.llm import LLM, get_metrics_collector
-from src.step_scoring import StepScoringConfig, score_reasoning_text
+from src.planner_policy import PlannerPolicy, compute_shaped_reward, default_planner_state_path
+from src.reasoning_loop import ReasoningLoopConfig, run_recursive_openai_reasoning
+from src.step_scoring import StepScoringConfig
 from src.storage import Neo4jMemoryStore
 
 META_STRATEGY_SEEDS = [
@@ -75,6 +77,13 @@ _LOCAL_CACHE_LOCK = threading.Lock()
 _GLOBAL_CACHE_LOCK = threading.Lock()
 _GLOBAL_MEMORY_LOCK = threading.Lock()
 _REFLECTOR_LOCK = threading.Lock()
+
+PLANNER_ACTIONS = {
+    "direct": {"rounds": 1, "candidates": 1},
+    "explore": {"rounds": 1, "candidates": 2},
+    "refine": {"rounds": 2, "candidates": 2},
+    "deep_refine": {"rounds": 2, "candidates": 3},
+}
 
 
 def _safe_env_int(name: str, default: int) -> int:
@@ -304,7 +313,8 @@ def get_global_memory() -> ACEMemory:
 
     storage = Neo4jMemoryStore(cache_key)
     memory = ACEMemory(max_bullets = 100, dedup_threshold = 0.85, prune_threshold = 0.3, storage = storage)
-    _seed_memory_if_empty(memory, context_scope_id = None)
+    if _safe_env_bool("ACE_SEED_GLOBAL_META_STRATEGIES", False):
+        _seed_memory_if_empty(memory, context_scope_id = None)
 
     with _GLOBAL_CACHE_LOCK:
         _GLOBAL_MEMORY_CACHE[cache_key] = memory
@@ -587,9 +597,32 @@ def create_failure_result(item: Dict[str, Any], task_id: str, api_error: str, me
                 "mean_step_score": 0.0,
                 "min_step_score": 0.0,
                 "max_step_score": 0.0,
+                "mean_step_confidence": 0.0,
+                "min_step_confidence": 0.0,
+                "max_step_confidence": 0.0,
+                "overall_confidence": 0.0,
                 "steps": [],
             },
             "step_score_mean": 0.0,
+            "recursion": {
+                "rounds_planned": 0,
+                "rounds_used": 0,
+                "candidates_per_round": 0,
+                "candidate_calls": 0,
+                "initial_score": 0.0,
+                "final_score": 0.0,
+                "improvement": 0.0,
+                "improved": False,
+                "exit_reason": "failure",
+            },
+            "planner": {
+                "action_id": "",
+                "explore": False,
+                "scores": {},
+                "reward_proxy": 0.0,
+                "reward_confidence": 0.0,
+                "policy_update": {"updated": False},
+            },
             "progress_written": False,
             "resume_source": "live",
             "memory_write_retries": 0,
@@ -622,16 +655,16 @@ def main() -> None:
         default = os.getenv("ACE_MEMORY_SCOPE_MODE", "hybrid"),
         choices = ["hybrid", "local", "global"],
     )
-    parser.add_argument("--local-top-k", type = int, default = _safe_env_int("ACE_LOCAL_TOP_K", 3))
-    parser.add_argument("--global-top-k", type = int, default = _safe_env_int("ACE_GLOBAL_TOP_K", 2))
+    parser.add_argument("--local-top-k", type = int, default = _safe_env_int("ACE_LOCAL_TOP_K", 8))
+    parser.add_argument("--global-top-k", type = int, default = _safe_env_int("ACE_GLOBAL_TOP_K", 5))
     parser.add_argument("--context-workers", type = int, default = _safe_env_int("ACE_CONTEXT_WORKERS", 6))
     parser.add_argument("--global-gate-score-min", type = float, default = _safe_env_float("ACE_GLOBAL_GATE_SCORE_MIN", 0.80))
     parser.add_argument("--step-scoring-mode", type = str, default = default_step_cfg.mode, choices = ["off", "near_full", "full"])
     parser.add_argument("--step-scorer-model", type = str, default = default_step_cfg.scorer_model)
     parser.add_argument("--step-score-workers", type = int, default = default_step_cfg.workers)
     parser.add_argument("--step-score-min", type = float, default = default_step_cfg.min_score)
-    parser.add_argument("--max-completion-tokens", type = int, default = _safe_env_int("ACE_MAX_COMPLETION_TOKENS", 8192))
-    parser.add_argument("--empty-output-retry-max-tokens", type = int, default = _safe_env_int("ACE_EMPTY_OUTPUT_RETRY_MAX_TOKENS", 16384))
+    parser.add_argument("--max-completion-tokens", type = int, default = _safe_env_int("ACE_MAX_COMPLETION_TOKENS", 16384))
+    parser.add_argument("--empty-output-retry-max-tokens", type = int, default = _safe_env_int("ACE_EMPTY_OUTPUT_RETRY_MAX_TOKENS", 32768))
     parser.add_argument(
         "--clear-results",
         action = argparse.BooleanOptionalAction,
@@ -672,6 +705,7 @@ def main() -> None:
         gate_score_min = args.qg_gate_score_min,
         lesson_score_min = args.qg_lesson_score_min,
         overlap_min = args.qg_overlap_min,
+        confidence_min = _safe_env_float("ACE_QG_CONFIDENCE_MIN", default_qg.confidence_min),
         max_accepted_lessons = args.qg_max_accepted_lessons,
     )
     step_config = StepScoringConfig(
@@ -680,6 +714,7 @@ def main() -> None:
         workers = args.step_score_workers,
         min_score = args.step_score_min,
     )
+    recursion_config = ReasoningLoopConfig.from_env()
 
     model = args.model or os.getenv("OPENAI_MODEL", "gpt-5.1")
     progress_path = args.progress_path or os.getenv("ACE_V5_PROGRESS_PATH") or f"{args.output}.progress.jsonl"
@@ -693,6 +728,20 @@ def main() -> None:
     base_url = os.getenv("OPENAI_API_BASE")
     if base_url:
         client_kwargs["base_url"] = base_url
+
+    planner_state_path = os.getenv("ACE_PLANNER_STATE_PATH_ACE")
+    if not planner_state_path:
+        planner_state_path = default_planner_state_path(
+            role = "ace",
+            output_dir = os.path.dirname(args.output) if os.path.dirname(args.output) else ".",
+        )
+    planner_policy = PlannerPolicy(
+        actions = list(PLANNER_ACTIONS.keys()),
+        state_path = planner_state_path,
+        epsilon = _safe_env_float("ACE_PLANNER_EPSILON", 0.08),
+        ucb_c = _safe_env_float("ACE_PLANNER_UCB_C", 1.10),
+        seed = args.seed,
+    )
 
     if args.clear_results:
         for path in [args.output, args.output.replace(".jsonl", "_metrics.json"), progress_path, completion_marker_path]:
@@ -816,6 +865,16 @@ def main() -> None:
             api_messages = [{"role": m.get("role", "user"), "content": m.get("content", "")} for m in messages]
             user_messages = [m.get("content", "") for m in messages if m.get("role") == "user"]
             last_user_text = user_messages[-1] if user_messages else ""
+            planner_choice = planner_policy.choose_action(
+                features = {
+                    "question_length": len(last_user_text),
+                    "num_messages": len(messages),
+                    "memory_scope_local": int(args.memory_scope in {"local", "hybrid"}),
+                    "memory_scope_global": int(args.memory_scope in {"global", "hybrid"}),
+                }
+            )
+            action_id = str(planner_choice.get("action_id", "deep_refine"))
+            action_cfg = PLANNER_ACTIONS.get(action_id, PLANNER_ACTIONS["deep_refine"])
             memory_errors: List[str] = []
 
             local_retrieved: List[Bullet] = []
@@ -852,16 +911,38 @@ def main() -> None:
             guidance = format_guidance(retrieved_bullets)
             enriched_messages = inject_guidance(api_messages, guidance)
 
-            content, metrics, error = infer_with_retry(
-                client = client,
-                messages = enriched_messages,
-                model = model,
-                max_completion_tokens = args.max_completion_tokens,
-                retry_max_tokens = args.empty_output_retry_max_tokens,
+            recursive_output = run_recursive_openai_reasoning(
+                question = last_user_text,
+                base_messages = enriched_messages,
+                generate_once = lambda generated_messages: infer_with_retry(
+                    client = client,
+                    messages = generated_messages,
+                    model = model,
+                    max_completion_tokens = args.max_completion_tokens,
+                    retry_max_tokens = args.empty_output_retry_max_tokens,
+                ),
+                step_config = step_config,
+                loop_config = recursion_config,
+                action_overrides = {
+                    "rounds": int(action_cfg.get("rounds", recursion_config.max_rounds)),
+                    "candidates": int(action_cfg.get("candidates", recursion_config.candidates)),
+                },
             )
+            content = str(recursive_output.get("content", ""))
+            metrics = recursive_output.get("metrics", {})
+            if not isinstance(metrics, dict):
+                metrics = {}
+            error = str(recursive_output.get("error", ""))
+            step_summary = recursive_output.get("step_summary", {})
+            if not isinstance(step_summary, dict):
+                step_summary = {}
+            recursion_diag = recursive_output.get("recursion", {})
+            if not isinstance(recursion_diag, dict):
+                recursion_diag = {}
 
-            if error:
+            if error and not content.strip():
                 context_failures += 1
+            if error:
                 metrics["api_error"] = error
 
             if (content or "").strip():
@@ -879,6 +960,7 @@ def main() -> None:
                 question = last_user_text,
                 model_answer = content,
                 lessons = lessons,
+                step_summary = step_summary,
                 config = qg_config,
             )
             accepted_lessons = qg_eval.get("accepted_lessons", [])
@@ -936,21 +1018,23 @@ def main() -> None:
                         ace_delta_global["persist_error"] = str(exc)
                         memory_errors.append(f"global_update:{exc}")
 
-            if step_config.mode == "off" or not (content or "").strip():
-                step_summary = {
-                    "num_steps": 0,
-                    "num_llm_scored": 0,
-                    "mean_step_score": 0.0,
-                    "min_step_score": 0.0,
-                    "max_step_score": 0.0,
-                    "steps": [],
-                }
-            else:
-                step_summary = score_reasoning_text(
-                    question = last_user_text,
-                    reasoning_text = content,
-                    config = step_config,
-                )
+            reward_payload = compute_shaped_reward(
+                step_score = float(step_summary.get("mean_step_score", 0.0) or 0.0),
+                output_valid = bool((content or "").strip()),
+                quality_gate_applied = bool(quality_gate.get("should_apply_update", False)),
+                recursion_improved = bool(recursion_diag.get("improved", False)),
+                step_confidence = float(step_summary.get("overall_confidence", 0.7) or 0.7),
+            )
+            planner_update = planner_policy.update(
+                action_id = action_id,
+                reward = reward_payload.get("proxy_reward", 0.0),
+                confidence = reward_payload.get("confidence", 0.7),
+                metadata = {
+                    "task_id": task_id,
+                    "stream": "ace_v5",
+                    "memory_scope": args.memory_scope,
+                },
+            )
 
             ace_delta = {
                 "local": {
@@ -1001,7 +1085,16 @@ def main() -> None:
                     "ace_delta": ace_delta,
                     "quality_gate": quality_gate,
                     "step_scoring": step_summary,
-                    "step_score_mean": step_summary.get("mean_step_score", 0.0),
+                    "step_score_mean": float(step_summary.get("mean_step_score", 0.0) or 0.0),
+                    "recursion": recursion_diag,
+                    "planner": {
+                        "action_id": action_id,
+                        "explore": bool(planner_choice.get("explore", False)),
+                        "scores": planner_choice.get("scores", {}),
+                        "reward_proxy": reward_payload.get("proxy_reward", 0.0),
+                        "reward_confidence": reward_payload.get("confidence", 0.0),
+                        "policy_update": planner_update,
+                    },
                     "resume_source": "live",
                     "memory_write_retries": memory_write_retries,
                     "memory_write_failed": memory_write_failed,

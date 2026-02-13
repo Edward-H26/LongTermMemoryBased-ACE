@@ -240,19 +240,22 @@ TAVILY_API_KEY=tvly-...your-key-here
 | Variable | Default | Required | Description |
 |---|---|---|---|
 | `ACE_INJECTION_MODE` | `post_context` | No | Where to inject ACE bullets: `post_context` (after context, before task) or `pre_context` (before system message, original behavior) |
-| `ACE_WEIGHT_RELEVANCE` | `0.25` | No | Weight for query relevance in retrieval scoring. Set to `0.55` for CL-bench. |
-| `ACE_WEIGHT_STRENGTH` | `0.55` | No | Weight for historical strength in retrieval scoring. Set to `0.25` for CL-bench. |
+| `ACE_WEIGHT_RELEVANCE` | `0.60` | No | Weight for query relevance in retrieval scoring |
+| `ACE_WEIGHT_STRENGTH` | `0.20` | No | Weight for historical strength in retrieval scoring |
 | `ACE_WEIGHT_TYPE` | `0.20` | No | Weight for memory type priority in retrieval scoring |
 | `ACE_SEED_META_STRATEGIES` | `true` | No | Pre-seed new memory contexts with meta-strategy bullets targeting common failure modes |
+| `ACE_SEED_GLOBAL_META_STRATEGIES` | `false` | No | Whether to pre-seed global memory with meta-strategy bullets |
+| `ACE_MIN_LEARNED_BULLETS` | `2` | No | Minimum learned bullets to preserve in retrieval top-k |
 
 ### ACE V3 Quality Gate Defaults
 
 | Variable | Default | Required | Description |
 |---|---|---|---|
-| `ACE_QG_GATE_SCORE_MIN` | `0.65` | No | Minimum task-level gate score required to apply memory updates |
-| `ACE_QG_LESSON_SCORE_MIN` | `0.60` | No | Minimum per-lesson quality score for lesson acceptance |
-| `ACE_QG_OVERLAP_MIN` | `0.10` | No | Minimum token-overlap score between question and lesson |
-| `ACE_QG_MAX_ACCEPTED_LESSONS` | `2` | No | Maximum accepted lessons per task after sorting by quality and overlap |
+| `ACE_QG_GATE_SCORE_MIN` | `0.60` | No | Minimum task-level gate score required to apply memory updates |
+| `ACE_QG_LESSON_SCORE_MIN` | `0.55` | No | Minimum per-lesson quality score for lesson acceptance |
+| `ACE_QG_OVERLAP_MIN` | `0.05` | No | Minimum blended overlap score between question and lesson |
+| `ACE_QG_CONFIDENCE_MIN` | `0.70` | No | Minimum blended lesson confidence score for acceptance |
+| `ACE_QG_MAX_ACCEPTED_LESSONS` | `4` | No | Maximum accepted lessons per task after sorting by confidence, quality, and overlap |
 
 ### ACE V4 Memory and Process Scoring Defaults
 
@@ -260,15 +263,21 @@ TAVILY_API_KEY=tvly-...your-key-here
 |---|---|---|---|
 | `ACE_MEMORY_SCOPE_MODE` | `hybrid` | No | Memory retrieval scope: `hybrid`, `local`, or `global` |
 | `ACE_GLOBAL_GATE_SCORE_MIN` | `0.80` | No | Minimum gate score required before writing accepted lessons into global memory |
-| `ACE_LOCAL_TOP_K` | `3` | No | Number of context-local bullets retrieved in v4 |
-| `ACE_GLOBAL_TOP_K` | `2` | No | Number of global bullets retrieved in v4 |
+| `ACE_LOCAL_TOP_K` | `8` | No | Number of context-local bullets retrieved in v5 max-quality profile |
+| `ACE_GLOBAL_TOP_K` | `5` | No | Number of global bullets retrieved in v5 max-quality profile |
 | `ACE_CONTEXT_WORKERS` | `6` | No | Parallel worker count for context-level ACE v4 inference |
-| `ACE_STEP_SCORING_MODE` | `near_full` | No | Step scoring mode: `off`, `near_full`, or `full` |
+| `ACE_STEP_SCORING_MODE` | `full` | No | Step scoring mode: `off`, `near_full`, or `full` |
 | `ACE_STEP_SCORER_MODEL` | `gpt-5.1` | No | LLM verifier model for intermediate step scoring |
-| `ACE_STEP_SCORE_WORKERS` | `8` | No | Worker count used for per-step verifier calls |
-| `ACE_STEP_SCORE_MIN` | `0.45` | No | ToT branch pruning threshold based on mean step score |
-| `ACE_MAX_COMPLETION_TOKENS` | `8192` | No | Default completion cap for v4 inference calls |
-| `ACE_EMPTY_OUTPUT_RETRY_MAX_TOKENS` | `16384` | No | Retry completion cap when first output is empty at token limit |
+| `ACE_STEP_SCORE_WORKERS` | `12` | No | Worker count used for per-step verifier calls |
+| `ACE_STEP_SCORE_MIN` | `0.40` | No | ToT branch pruning threshold based on mean step score |
+| `ACE_MAX_COMPLETION_TOKENS` | `16384` | No | Default completion cap for v5 inference calls |
+| `ACE_EMPTY_OUTPUT_RETRY_MAX_TOKENS` | `32768` | No | Retry completion cap when first output is empty at token limit |
+| `ACE_PLANNER_POLICY` | `bandit` | No | Planner policy mode used in runtime and benchmark v5 |
+| `ACE_PLANNER_EPSILON` | `0.08` | No | Planner epsilon-greedy exploration rate |
+| `ACE_PLANNER_UCB_C` | `1.10` | No | Planner UCB exploration constant |
+| `ACE_RECURSION_MAX_ROUNDS` | `2` | No | Maximum recursive reasoning rounds |
+| `ACE_RECURSION_CANDIDATES` | `3` | No | Candidate count per recursion round |
+| `ACE_RECURSION_IMPROVE_MIN` | `0.03` | No | Minimum score improvement required to continue recursion |
 
 ### ACE V5 Reliability and Durability Defaults
 
@@ -277,8 +286,8 @@ TAVILY_API_KEY=tvly-...your-key-here
 | `ACE_NEO4J_RETRY_MAX` | `2` | No | Number of retries for Neo4j load/save after first attempt |
 | `ACE_NEO4J_RETRY_BACKOFF_SEC` | `1.0` | No | Exponential backoff base seconds for Neo4j retries |
 | `ACE_NEO4J_RECONNECT_ON_SESSION_EXPIRED` | `true` | No | Reset and reconnect Neo4j driver when `SessionExpired` is detected |
-| `ACE_V5_RESUME_FROM_PROGRESS` | `true` | No | Default for `infer_ace_direct_v5 --resume-from-progress` |
-| `ACE_V5_FINALIZE_ORDER` | `true` | No | Default for `infer_ace_direct_v5 --finalize-order` |
+| `ACE_V5_RESUME_FROM_PROGRESS` | `true` | No | Default for `benchmark.v5.infer_ace --resume-from-progress` |
+| `ACE_V5_FINALIZE_ORDER` | `true` | No | Default for `benchmark.v5.infer_ace --finalize-order` |
 | `ACE_V5_PROGRESS_PATH` | (unset) | No | Optional override for ACE v5 durable journal path |
 
 ### Benchmark Cost Reporting Defaults
@@ -351,25 +360,34 @@ NEO4J_PASSWORD=your-password
 ACE_LLM_TEMPERATURE=0.2
 ACE_CURATOR_USE_LLM=false
 ACE_INJECTION_MODE=post_context
-ACE_WEIGHT_RELEVANCE=0.55
-ACE_WEIGHT_STRENGTH=0.25
+ACE_WEIGHT_RELEVANCE=0.60
+ACE_WEIGHT_STRENGTH=0.20
 ACE_WEIGHT_TYPE=0.20
 ACE_SEED_META_STRATEGIES=true
-ACE_QG_GATE_SCORE_MIN=0.65
-ACE_QG_LESSON_SCORE_MIN=0.60
-ACE_QG_OVERLAP_MIN=0.10
-ACE_QG_MAX_ACCEPTED_LESSONS=2
+ACE_SEED_GLOBAL_META_STRATEGIES=false
+ACE_MIN_LEARNED_BULLETS=2
+ACE_QG_GATE_SCORE_MIN=0.60
+ACE_QG_LESSON_SCORE_MIN=0.55
+ACE_QG_OVERLAP_MIN=0.05
+ACE_QG_CONFIDENCE_MIN=0.70
+ACE_QG_MAX_ACCEPTED_LESSONS=4
 ACE_MEMORY_SCOPE_MODE=hybrid
 ACE_GLOBAL_GATE_SCORE_MIN=0.80
-ACE_LOCAL_TOP_K=3
-ACE_GLOBAL_TOP_K=2
+ACE_LOCAL_TOP_K=8
+ACE_GLOBAL_TOP_K=5
 ACE_CONTEXT_WORKERS=6
-ACE_STEP_SCORING_MODE=near_full
+ACE_STEP_SCORING_MODE=full
 ACE_STEP_SCORER_MODEL=gpt-5.1
-ACE_STEP_SCORE_WORKERS=8
-ACE_STEP_SCORE_MIN=0.45
-ACE_MAX_COMPLETION_TOKENS=8192
-ACE_EMPTY_OUTPUT_RETRY_MAX_TOKENS=16384
+ACE_STEP_SCORE_WORKERS=12
+ACE_STEP_SCORE_MIN=0.40
+ACE_MAX_COMPLETION_TOKENS=16384
+ACE_EMPTY_OUTPUT_RETRY_MAX_TOKENS=32768
+ACE_PLANNER_POLICY=bandit
+ACE_PLANNER_EPSILON=0.08
+ACE_PLANNER_UCB_C=1.10
+ACE_RECURSION_MAX_ROUNDS=2
+ACE_RECURSION_CANDIDATES=3
+ACE_RECURSION_IMPROVE_MIN=0.03
 ```
 
 ### Profile: HuggingFace Inference Endpoint
@@ -432,10 +450,10 @@ With defaults, `run_v5`:
 
 1. Clears existing v5 artifacts.
 2. Optionally clears Neo4j.
-3. Runs `infer_baseline_v5` and `infer_ace_direct_v5` in parallel.
+3. Runs `benchmark.v5.infer_baseline` and `benchmark.v5.infer_ace` in parallel.
 4. Uses ACE per-task durable progress journal for crash-safe resume.
 5. Writes `benchmark/results/v5/run_v5_meta.json` with phase timestamps.
-6. Runs `benchmark.v5.complete_pipeline`, which performs parallel eval, parallel error analysis, per-side retries, parity validation, full-pipeline metered cost reporting, and strict billed-cost reconciliation.
+6. Runs `benchmark.v5.complete_pipeline`, which performs parallel eval, planner reward replay, parallel error analysis, per-side retries, parity validation, full-pipeline metered cost reporting, and strict billed-cost reconciliation.
 7. Optionally runs `benchmark.sanitize` for post-run JSONL sanitization.
 
 Strict billing prerequisites for default v5 flow:
@@ -559,10 +577,13 @@ python -m benchmark.v5.run \
 - `benchmark/results/v5/ace_v5_graded_errors.jsonl`
 - `benchmark/results/v5/baseline_v5_graded_errors_error_metrics.json`
 - `benchmark/results/v5/ace_v5_graded_errors_error_metrics.json`
+- `benchmark/results/v5/policy_replay_v5.json`
 - `benchmark/results/v5/comparison_report_v5.md`
 - `benchmark/results/v5/comparison_report_v5.json`
 - `benchmark/results/v5/ace_v5.jsonl.progress.jsonl`
 - `benchmark/results/v5/ace_v5.jsonl.complete.json`
+- `benchmark/results/v5/planner_policy_baseline_v5.json`
+- `benchmark/results/v5/planner_policy_ace_v5.json`
 - `benchmark/results/v5/run_v5_meta.json`
 - `benchmark/results/v5/preflight_v5.json` (when preflight is used)
 
@@ -608,7 +629,7 @@ With defaults, the command:
 
 1. Clears existing v4 artifacts.
 2. Clears Neo4j.
-3. Runs `infer_baseline_v4` and `infer_ace_direct_v4` in parallel.
+3. Runs `benchmark.v4.infer_baseline` and `benchmark.v4.infer_ace` in parallel.
 4. Verifies output line counts against `--max-samples`.
 5. Runs `benchmark.v4.complete_pipeline --output-dir ... --skip-wait --max-samples ...` for eval, error analysis, and comparison report generation.
 
@@ -754,7 +775,7 @@ With defaults, the command:
 
 1. Clears existing v3 artifacts.
 2. Clears Neo4j.
-3. Runs `infer_baseline_v3` and `infer_ace_direct_v3` in parallel.
+3. Runs `benchmark.v3.infer_baseline` and `benchmark.v3.infer_ace` in parallel.
 4. Verifies output line counts.
 5. Runs `benchmark.v3.complete_pipeline --skip-wait`, which performs eval, error analysis, and comparison report generation.
 

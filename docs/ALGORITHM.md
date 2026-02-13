@@ -20,6 +20,7 @@ Core benchmark streams:
 - One-command orchestration (v4): `benchmark/v4/run.py`
 - Baseline v5: `benchmark/v5/infer_baseline.py`
 - ACE direct v5: `benchmark/v5/infer_ace.py`
+- Policy replay v5: `benchmark/v5/policy_replay.py`
 - One-command orchestration (v5): `benchmark/v5/run.py`
 
 ## 2. Memory Model
@@ -46,40 +47,50 @@ Primary code paths:
 Current code defaults are loaded from environment in `src/ace_memory.py`:
 
 - `ACE_MEMORY_BASE_STRENGTH = 100.0`
-- `ACE_WEIGHT_RELEVANCE = 0.25`
-- `ACE_WEIGHT_STRENGTH = 0.55`
+- `ACE_WEIGHT_RELEVANCE = 0.60`
+- `ACE_WEIGHT_STRENGTH = 0.20`
 - `ACE_WEIGHT_TYPE = 0.20`
+- `ACE_MIN_LEARNED_BULLETS = 2`
+- `ACE_SEED_BULLET_PENALTY = 0.25`
+- `ACE_LEARNED_BULLET_BONUS = 0.08`
 
 These are framework defaults. CL-bench experiments may tune relevance and strength weights separately.
 
-## 4. V3 Quality Gate (Implemented)
+## 4. Quality Gate (Current Defaults)
 
-Quality gate logic is implemented in `src/ace_components.py`.
+Quality gate logic is implemented in `src/ace_components.py` and reused by runtime plus benchmark v5.
 
 ## 4.1 Config and Defaults
 
 `QualityGateConfig` defaults:
 
-- `gate_score_min = 0.65`
-- `lesson_score_min = 0.60`
-- `overlap_min = 0.10`
-- `max_accepted_lessons = 2`
+- `gate_score_min = 0.60`
+- `lesson_score_min = 0.55`
+- `overlap_min = 0.05`
+- `confidence_min = 0.70`
+- `max_accepted_lessons = 4`
 
 These can be overridden by:
 
 - `ACE_QG_GATE_SCORE_MIN`
 - `ACE_QG_LESSON_SCORE_MIN`
 - `ACE_QG_OVERLAP_MIN`
+- `ACE_QG_CONFIDENCE_MIN`
 - `ACE_QG_MAX_ACCEPTED_LESSONS`
 
 ## 4.2 Scoring Components
 
 For each extracted lesson:
 
-1. Overlap score:
+1. Relevance score:
 
 ```text
-overlap_score = |tokens(question) ∩ tokens(lesson)| / |tokens(question) ∪ tokens(lesson)|
+lexical_jaccard = |tokens(question) ∩ tokens(lesson)| / |tokens(question) ∪ tokens(lesson)|
+precision = |tokens(question) ∩ tokens(lesson)| / |tokens(lesson)|
+recall = |tokens(question) ∩ tokens(lesson)| / |tokens(question)|
+f1_overlap = 2 * precision * recall / (precision + recall)
+coverage = |tokens(question) ∩ tokens(lesson)| / min(|tokens(question)|, |tokens(lesson)|)
+relevance_score = 0.50 * lexical_jaccard + 0.30 * f1_overlap + 0.20 * coverage
 ```
 
 2. Lesson quality score:
@@ -91,17 +102,27 @@ type_score = 0.2 if type in {success, failure, domain, tool} else 0.0
 lesson_score = min(token_score + tags_score + type_score, 1.0)
 ```
 
-3. Lesson acceptance filter:
+3. Lesson confidence score:
 
 ```text
-accept if overlap_score >= overlap_min
+verifier_score = step_summary.overall_confidence if available
+                 else mean(lesson.confidence) when present
+                 else 0.5 * lesson_score + 0.5 * relevance_score
+confidence_score = 0.45 * lesson_score + 0.40 * relevance_score + 0.15 * verifier_score
+```
+
+4. Lesson acceptance filter:
+
+```text
+accept if relevance_score >= overlap_min
       and lesson_score >= lesson_score_min
+      and confidence_score >= confidence_min
       and content is non-empty
 ```
 
-4. Top-k cap:
+5. Top-k cap:
 
-Accepted candidates are sorted by `(lesson_score, overlap_score)` descending, then truncated to `max_accepted_lessons`.
+Accepted candidates are sorted by `(confidence_score, lesson_score, relevance_score)` descending, then truncated to `max_accepted_lessons`.
 
 ## 4.3 Task-Level Gate
 
@@ -110,7 +131,8 @@ After accepted lessons are selected:
 ```text
 output_score = 1.0 if model output is non-empty else 0.0
 accepted_quality_avg = mean(accepted lesson scores)
-gate_score = 0.5 * output_score + 0.5 * accepted_quality_avg
+accepted_confidence_avg = mean(accepted lesson confidence scores)
+gate_score = 0.35 * output_score + 0.35 * accepted_quality_avg + 0.30 * accepted_confidence_avg
 should_apply_update = accepted_lessons non-empty and gate_score >= gate_score_min
 ```
 
@@ -124,6 +146,9 @@ Diagnostics returned by `apply_quality_gate` and attached to outputs include:
 - `output_valid`
 - `output_score`
 - `accepted_quality_avg`
+- `accepted_confidence_avg`
+- `accepted_relevance_avg`
+- `step_confidence`
 - `gate_score`
 - `should_apply_update`
 - `num_lessons_input`
@@ -306,9 +331,9 @@ Preflight flow:
 
 This prevents accidental full-dataset execution from invalid command arguments.
 
-## 6.6 Benchmark v5 reliability extensions (`benchmark/v5/infer_baseline.py`, `benchmark/v5/infer_ace.py`)
+## 6.6 Benchmark v5 reliability and planner extensions (`benchmark/v5/infer_baseline.py`, `benchmark/v5/infer_ace.py`)
 
-V5 keeps v4 scoring behavior and adds fault tolerance and resumability:
+V5 adds fault tolerance, resumability, and a max-quality hybrid planner loop:
 
 1. Storage reliability:
    `src/storage.py` retries Neo4j load/save and handles both `Neo4jError` and `DriverError` paths.
@@ -324,6 +349,12 @@ V5 keeps v4 scoring behavior and adds fault tolerance and resumability:
    output can be rebuilt in manifest order from output + progress sources (`--finalize-order`).
 7. Completion marker:
    `<output>.complete.json` records selected and completed row counts.
+8. Policy-driven planning:
+   both baseline and ACE v5 use `PlannerPolicy` (`src/planner_policy.py`) with epsilon plus UCB action selection.
+9. Recursive test-time reasoning:
+   both streams run `run_recursive_openai_reasoning` (`src/reasoning_loop.py`) with action-specific round and candidate budgets.
+10. Confidence-aware gate and learned-memory retrieval:
+   ACE gate consumes step-confidence signals and retrieval enforces learned-bullet quota with seed downweighting.
 
 New v5 runtime metrics include:
 
@@ -332,6 +363,9 @@ New v5 runtime metrics include:
 - `memory_write_retries`
 - `memory_write_failed`
 - `memory_error`
+- `recursion`
+- `planner`
+- `step_scoring.overall_confidence`
 
 ## 6.7 One-command v5 orchestration (`benchmark/v5/run.py`)
 
@@ -377,13 +411,15 @@ V5 post pipeline runs:
 2. retry failed side only (bounded by `--stage-retry-max`);
 3. write eval usage metrics into:
    `baseline_v5_graded_eval_metrics.json`, `ace_v5_graded_eval_metrics.json`;
-4. baseline and ACE error analysis in parallel;
-5. retry failed side only;
-6. write error-analysis usage metrics into:
+4. replay terminal graded rewards into planner state via `benchmark/v5/policy_replay.py`;
+5. write replay output into `policy_replay_v5.json`;
+6. baseline and ACE error analysis in parallel;
+7. retry failed side only;
+8. write error-analysis usage metrics into:
    `baseline_v5_graded_errors_error_metrics.json`, `ace_v5_graded_errors_error_metrics.json`;
-7. task-id parity check before compare;
-8. compare with cost mode and billing policy flags;
-9. strict billed reconciliation when `cost_mode=dual_source` and `billing_policy=strict`.
+9. task-id parity check before compare;
+10. compare with cost mode and billing policy flags;
+11. strict billed reconciliation when `cost_mode=dual_source` and `billing_policy=strict`.
 
 ## 7. Runtime Parity With Benchmark Gate
 
@@ -391,8 +427,11 @@ Runtime graph learning uses the same gate function and defaults:
 
 - `src/agent.py` calls `pipeline.process_execution(...)` in `ace_learning_node`.
 - `src/ace_components.py` `ACEPipeline.process_execution` calls `apply_quality_gate(...)` with `QualityGateConfig.from_env()`.
+- `src/agent.py` planner node uses `PlannerPolicy` from `src/planner_policy.py`.
+- `benchmark/v5/infer_baseline.py` and `benchmark/v5/infer_ace.py` use the same `PlannerPolicy` module for action selection and online updates.
+- `src/agent.py` uses `run_recursive_text_refinement` and benchmark v5 uses `run_recursive_openai_reasoning` from `src/reasoning_loop.py`.
 
-This means online runtime updates and benchmark v3 updates share gate logic and thresholds by default.
+This means online runtime updates and benchmark v5 updates share gate logic and thresholds by default.
 
 ## 8. Comparison and Reporting Logic
 
@@ -404,6 +443,8 @@ This means online runtime updates and benchmark v3 updates share gate logic and 
 - Table 4 per-category token and latency.
 - Table 5 runtime diagnostics when fields are present:
   carryover coverage, learned retrieval rate, capped-output rate, mean step score, quality-gate apply rate.
+- Table 5B planner diagnostics when planner fields are present:
+  dominant action, action distribution, explore rate, recursion success rate, mean planner reward proxy, policy update counts and rates.
 - Table 6 full-pipeline actual metered cost by phase:
   baseline inference, ACE inference, ACE auxiliary, baseline eval, ACE eval, baseline error analysis, ACE error analysis, and totals.
 - Table 7 OpenAI billed reconciliation:
@@ -426,6 +467,8 @@ Additive JSON fields in `comparison_report_v5.json`:
 - `cost_breakdown_by_phase`
 - `openai_billed_reconciliation`
 - `cost_reconciliation_status`
+- `baseline_planner_diagnostics`
+- `ace_planner_diagnostics`
 
 It also enforces baseline versus ACE task-id set equality before report generation.
 

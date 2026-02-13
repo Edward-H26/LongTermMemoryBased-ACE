@@ -136,6 +136,7 @@ Markdown tables:
 3. inference token/latency/estimated cost
 4. per-category token/latency
 5. runtime diagnostics
+5B. planner policy diagnostics
 6. full-pipeline actual metered cost
 7. OpenAI billed reconciliation
 
@@ -145,6 +146,8 @@ JSON summary keeps existing keys and adds:
 - `cost_breakdown_by_phase`
 - `openai_billed_reconciliation`
 - `cost_reconciliation_status`
+- `baseline_planner_diagnostics`
+- `ace_planner_diagnostics`
 
 ### 2.7 Deterministic subset manifests
 
@@ -237,6 +240,21 @@ Fields:
 - `compare`
 - optional orchestration phases such as `post_pipeline`
 
+### 3.4 Planner replay and policy state artifacts
+
+- `policy_replay_v5.json`
+- `planner_policy_baseline_v5.json`
+- `planner_policy_ace_v5.json`
+- optional runtime planner state path if configured with `ACE_PLANNER_STATE_PATH`
+
+`policy_replay_v5.json` summarizes:
+
+- replay mode (`both`, `baseline`, or `ace`)
+- rows processed per stream
+- update counts per stream
+- mean replay reward per stream
+- action-level replay update counts
+
 ## 4. Cost backfill artifacts
 
 Backfill utility outputs:
@@ -257,6 +275,7 @@ Only these artifact name patterns are publish-safe:
 - `subset_manifest_*.json`
 - `preflight_*.json`
 - `ace_*_metrics.json`
+- `policy_replay_v5.json`
 - `run_*_meta.json`
 - `cost_backfill_*.json`
 - `cost_backfill_*.md`

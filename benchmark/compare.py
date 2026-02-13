@@ -7,6 +7,7 @@ Produces:
 - Table 3: Inference Token/Latency/Estimated Cost
 - Table 4: Per-category Token/Latency
 - Table 5: Runtime diagnostics
+- Table 5B: Planner policy diagnostics
 - Table 6: Full pipeline actual metered cost by phase
 - Table 7: OpenAI billed reconciliation
 """
@@ -277,6 +278,76 @@ def compute_runtime_diagnostics(data: List[Dict[str, Any]]) -> Dict[str, Any]:
     }
 
 
+def compute_planner_diagnostics(data: List[Dict[str, Any]]) -> Dict[str, Any]:
+    total = len(data)
+    if total == 0:
+        return {}
+
+    action_counts: Dict[str, int] = {}
+    planner_rows = 0
+    explore_count = 0
+    recursion_improved_count = 0
+    reward_values: List[float] = []
+    policy_update_count = 0
+
+    for item in data:
+        metrics = item.get("metrics", {})
+        if not isinstance(metrics, dict):
+            continue
+        planner = metrics.get("planner", {})
+        if not isinstance(planner, dict):
+            continue
+        action_id = str(planner.get("action_id", "")).strip()
+        if not action_id:
+            continue
+
+        planner_rows += 1
+        action_counts[action_id] = action_counts.get(action_id, 0) + 1
+        if bool(planner.get("explore", False)):
+            explore_count += 1
+        reward_proxy = planner.get("reward_proxy")
+        if isinstance(reward_proxy, (int, float)):
+            reward_values.append(float(reward_proxy))
+
+        policy_update = planner.get("policy_update", {})
+        if isinstance(policy_update, dict) and bool(policy_update.get("updated", False)):
+            policy_update_count += 1
+
+        recursion = metrics.get("recursion", {})
+        if isinstance(recursion, dict) and bool(recursion.get("improved", False)):
+            recursion_improved_count += 1
+
+    if planner_rows == 0:
+        return {}
+
+    dominant_action = ""
+    dominant_action_pct = 0.0
+    for action_id, count in sorted(action_counts.items(), key = lambda row: (-row[1], row[0])):
+        pct = (count / planner_rows * 100.0)
+        if dominant_action == "":
+            dominant_action = action_id
+            dominant_action_pct = pct
+
+    action_distribution_pct = {
+        action_id: (count / planner_rows * 100.0)
+        for action_id, count in sorted(action_counts.items())
+    }
+
+    return {
+        "num_rows": total,
+        "planner_rows": planner_rows,
+        "action_counts": action_counts,
+        "action_distribution_pct": action_distribution_pct,
+        "dominant_action": dominant_action,
+        "dominant_action_pct": dominant_action_pct,
+        "explore_rate_pct": (explore_count / planner_rows * 100.0),
+        "recursion_success_rate_pct": (recursion_improved_count / total * 100.0),
+        "mean_reward_proxy": (sum(reward_values) / len(reward_values)) if reward_values else 0.0,
+        "policy_update_count": policy_update_count,
+        "policy_update_rate_pct": (policy_update_count / planner_rows * 100.0),
+    }
+
+
 def normalize_phase_entry(
     phase_key: str,
     label: str,
@@ -450,6 +521,8 @@ def format_report(
     ace_cat_metrics: Dict[str, Dict[str, float]],
     baseline_runtime_diag: Optional[Dict[str, Any]] = None,
     ace_runtime_diag: Optional[Dict[str, Any]] = None,
+    baseline_planner_diag: Optional[Dict[str, Any]] = None,
+    ace_planner_diag: Optional[Dict[str, Any]] = None,
     title_label: str = "V2",
     cost_breakdown_by_phase: Optional[Dict[str, Any]] = None,
     full_pipeline_cost_metered: Optional[Dict[str, Any]] = None,
@@ -600,6 +673,46 @@ def format_report(
                 f"| Progress Checkpoint Count | {baseline_diag.get('progress_checkpoint_count', 0):,.0f} | {ace_diag.get('progress_checkpoint_count', 0):,.0f} | "
                 f"{format_percent_delta(baseline_diag.get('progress_checkpoint_count', 0), ace_diag.get('progress_checkpoint_count', 0))} |"
             )
+
+    if baseline_planner_diag or ace_planner_diag:
+        baseline_planner = baseline_planner_diag or {}
+        ace_planner = ace_planner_diag or {}
+        lines.append("\n## Table 5B: Planner Policy Diagnostics\n")
+        lines.append("| Metric | Baseline | ACE | Delta |")
+        lines.append("|---|---|---|---|")
+        lines.append(
+            f"| Dominant Action | {baseline_planner.get('dominant_action', 'N/A')} ({baseline_planner.get('dominant_action_pct', 0):.1f}%) | "
+            f"{ace_planner.get('dominant_action', 'N/A')} ({ace_planner.get('dominant_action_pct', 0):.1f}%) | N/A |"
+        )
+        baseline_distribution = ", ".join(
+            f"{action}:{pct:.1f}%"
+            for action, pct in (baseline_planner.get("action_distribution_pct", {}) or {}).items()
+        ) or "N/A"
+        ace_distribution = ", ".join(
+            f"{action}:{pct:.1f}%"
+            for action, pct in (ace_planner.get("action_distribution_pct", {}) or {}).items()
+        ) or "N/A"
+        lines.append(f"| Action Distribution (%) | {baseline_distribution} | {ace_distribution} | N/A |")
+        lines.append(
+            f"| Explore Rate (%) | {baseline_planner.get('explore_rate_pct', 0):.1f} | {ace_planner.get('explore_rate_pct', 0):.1f} | "
+            f"{format_percent_delta(baseline_planner.get('explore_rate_pct', 0), ace_planner.get('explore_rate_pct', 0))} |"
+        )
+        lines.append(
+            f"| Recursion Success Rate (%) | {baseline_planner.get('recursion_success_rate_pct', 0):.1f} | {ace_planner.get('recursion_success_rate_pct', 0):.1f} | "
+            f"{format_percent_delta(baseline_planner.get('recursion_success_rate_pct', 0), ace_planner.get('recursion_success_rate_pct', 0))} |"
+        )
+        lines.append(
+            f"| Mean Reward Proxy | {baseline_planner.get('mean_reward_proxy', 0):.3f} | {ace_planner.get('mean_reward_proxy', 0):.3f} | "
+            f"{format_percent_delta(baseline_planner.get('mean_reward_proxy', 0), ace_planner.get('mean_reward_proxy', 0))} |"
+        )
+        lines.append(
+            f"| Policy Update Count | {baseline_planner.get('policy_update_count', 0):,.0f} | {ace_planner.get('policy_update_count', 0):,.0f} | "
+            f"{format_percent_delta(baseline_planner.get('policy_update_count', 0), ace_planner.get('policy_update_count', 0))} |"
+        )
+        lines.append(
+            f"| Policy Update Rate (%) | {baseline_planner.get('policy_update_rate_pct', 0):.1f} | {ace_planner.get('policy_update_rate_pct', 0):.1f} | "
+            f"{format_percent_delta(baseline_planner.get('policy_update_rate_pct', 0), ace_planner.get('policy_update_rate_pct', 0))} |"
+        )
 
     if cost_breakdown_by_phase and full_pipeline_cost_metered:
         lines.append("\n## Table 6: Full Pipeline Actual Metered Cost\n")
@@ -796,6 +909,8 @@ def main() -> None:
     ace_cat_metrics = compute_metrics_by_category(ace_data)
     baseline_runtime_diag = compute_runtime_diagnostics(baseline_data)
     ace_runtime_diag = compute_runtime_diagnostics(ace_data)
+    baseline_planner_diag = compute_planner_diagnostics(baseline_data)
+    ace_planner_diag = compute_planner_diagnostics(ace_data)
 
     metric_paths = resolve_phase_metric_paths(args)
     if not metric_paths["ace_aux_metrics"]:
@@ -830,6 +945,8 @@ def main() -> None:
         ace_cat_metrics = ace_cat_metrics,
         baseline_runtime_diag = baseline_runtime_diag,
         ace_runtime_diag = ace_runtime_diag,
+        baseline_planner_diag = baseline_planner_diag,
+        ace_planner_diag = ace_planner_diag,
         title_label = args.title_label,
         cost_breakdown_by_phase = cost_breakdown_by_phase,
         full_pipeline_cost_metered = full_pipeline_cost_metered,
@@ -859,6 +976,8 @@ def main() -> None:
         "ace_v4_diagnostics": ace_runtime_diag,
         "baseline_v5_diagnostics": baseline_runtime_diag,
         "ace_v5_diagnostics": ace_runtime_diag,
+        "baseline_planner_diagnostics": baseline_planner_diag,
+        "ace_planner_diagnostics": ace_planner_diag,
         "full_pipeline_cost_metered": full_pipeline_cost_metered,
         "cost_breakdown_by_phase": cost_breakdown_by_phase,
         "openai_billed_reconciliation": billed_reconciliation,

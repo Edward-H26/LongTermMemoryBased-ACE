@@ -155,6 +155,9 @@ def run_main_pipeline(args: argparse.Namespace) -> None:
             os.path.join(args.output_dir, "ace_v5_graded.jsonl"),
             os.path.join(args.output_dir, "baseline_v5_graded_errors.jsonl"),
             os.path.join(args.output_dir, "ace_v5_graded_errors.jsonl"),
+            os.path.join(args.output_dir, "policy_replay_v5.json"),
+            os.path.join(args.output_dir, "planner_policy_baseline_v5.json"),
+            os.path.join(args.output_dir, "planner_policy_ace_v5.json"),
             os.path.join(args.output_dir, "comparison_report_v5.md"),
             os.path.join(args.output_dir, "comparison_report_v5.json"),
             run_meta_path,
@@ -400,8 +403,8 @@ def main() -> None:
         return
 
     context_workers = int(os.getenv("ACE_CONTEXT_WORKERS", "6"))
-    step_scoring_mode = str(os.getenv("ACE_STEP_SCORING_MODE", "near_full")).strip().lower()
-    step_score_workers = int(os.getenv("ACE_STEP_SCORE_WORKERS", "8"))
+    step_scoring_mode = str(os.getenv("ACE_STEP_SCORING_MODE", "full")).strip().lower()
+    step_score_workers = int(os.getenv("ACE_STEP_SCORE_WORKERS", "12"))
 
     static_checks = run_static_checks(
         manifest_path = args.manifest,
