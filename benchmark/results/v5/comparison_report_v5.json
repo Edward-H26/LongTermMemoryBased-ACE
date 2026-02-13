@@ -1,0 +1,370 @@
+{
+  "baseline_solving_rates": {
+    "overall": 19.5,
+    "total": 200,
+    "score_1": 39,
+    "categories": {
+      "Procedural Task Execution": 14.893617021276595,
+      "Rule System Application": 25.806451612903224,
+      "Domain Knowledge Reasoning": 17.647058823529413,
+      "Empirical Discovery & Simulation": 16.666666666666664
+    },
+    "category_counts": {
+      "Procedural Task Execution": 47,
+      "Rule System Application": 62,
+      "Domain Knowledge Reasoning": 85,
+      "Empirical Discovery & Simulation": 6
+    }
+  },
+  "ace_solving_rates": {
+    "overall": 23.0,
+    "total": 200,
+    "score_1": 46,
+    "categories": {
+      "Procedural Task Execution": 25.53191489361702,
+      "Rule System Application": 33.87096774193548,
+      "Domain Knowledge Reasoning": 14.117647058823529,
+      "Empirical Discovery & Simulation": 16.666666666666664
+    },
+    "category_counts": {
+      "Procedural Task Execution": 47,
+      "Rule System Application": 62,
+      "Domain Knowledge Reasoning": 85,
+      "Empirical Discovery & Simulation": 6
+    }
+  },
+  "baseline_error_distribution": {
+    "CONTEXT_IGNORED": 67.0,
+    "CONTEXT_MISUSED": 7.000000000000001,
+    "FORMAT_ERROR": 40.5,
+    "REFUSAL": 1.5
+  },
+  "ace_error_distribution": {
+    "CONTEXT_IGNORED": 63.0,
+    "CONTEXT_MISUSED": 4.5,
+    "FORMAT_ERROR": 40.5,
+    "REFUSAL": 1.5
+  },
+  "baseline_metrics": {
+    "avg_latency_ms": 36735.2849675843,
+    "p50_latency_ms": 28328.15591711551,
+    "p95_latency_ms": 96837.99487515353,
+    "avg_tokens": 11044.53,
+    "avg_prompt_tokens": 8711.375,
+    "avg_completion_tokens": 2333.155,
+    "total_tokens": 2208906.0,
+    "total_prompt_tokens": 1742275.0,
+    "total_completion_tokens": 466631.0,
+    "cost_usd": 6.84415375
+  },
+  "ace_metrics": {
+    "avg_latency_ms": 130007.99279392116,
+    "p50_latency_ms": 74549.69420819543,
+    "p95_latency_ms": 480594.3401658442,
+    "avg_tokens": 44515.735,
+    "avg_prompt_tokens": 35530.43,
+    "avg_completion_tokens": 8985.305,
+    "total_tokens": 8903147.0,
+    "total_prompt_tokens": 7106086.0,
+    "total_completion_tokens": 1797061.0,
+    "cost_usd": 26.8532175
+  },
+  "baseline_category_metrics": {
+    "Procedural Task Execution": {
+      "avg_latency_ms": 47906.92189805943,
+      "p50_latency_ms": 41389.0624998603,
+      "p95_latency_ms": 107113.75424987637,
+      "avg_tokens": 12216.297872340425,
+      "avg_prompt_tokens": 8880.787234042553,
+      "avg_completion_tokens": 3335.5106382978724,
+      "total_tokens": 574166.0,
+      "total_prompt_tokens": 417397.0,
+      "total_completion_tokens": 156769.0,
+      "cost_usd": 2.08943625
+    },
+    "Rule System Application": {
+      "avg_latency_ms": 23027.349014905463,
+      "p50_latency_ms": 20774.43258301355,
+      "p95_latency_ms": 66249.9637498986,
+      "avg_tokens": 8268.0,
+      "avg_prompt_tokens": 6774.693548387097,
+      "avg_completion_tokens": 1493.3064516129032,
+      "total_tokens": 512616.0,
+      "total_prompt_tokens": 420031.0,
+      "total_completion_tokens": 92585.0,
+      "cost_usd": 1.45088875
+    },
+    "Domain Knowledge Reasoning": {
+      "avg_latency_ms": 39872.59421039318,
+      "p50_latency_ms": 31420.044916914776,
+      "p95_latency_ms": 97402.35904115252,
+      "avg_tokens": 11235.764705882353,
+      "avg_prompt_tokens": 8861.2,
+      "avg_completion_tokens": 2374.564705882353,
+      "total_tokens": 955040.0,
+      "total_prompt_tokens": 753202.0,
+      "total_completion_tokens": 201838.0,
+      "cost_usd": 2.9598825
+    },
+    "Empirical Discovery & Simulation": {
+      "avg_latency_ms": 46427.586250084765,
+      "p50_latency_ms": 58291.6790000163,
+      "p95_latency_ms": 79446.87233306468,
+      "avg_tokens": 27847.333333333332,
+      "avg_prompt_tokens": 25274.166666666668,
+      "avg_completion_tokens": 2573.1666666666665,
+      "total_tokens": 167084.0,
+      "total_prompt_tokens": 151645.0,
+      "total_completion_tokens": 15439.0,
+      "cost_usd": 0.34394625
+    }
+  },
+  "ace_category_metrics": {
+    "Procedural Task Execution": {
+      "avg_latency_ms": 183296.9480947086,
+      "p50_latency_ms": 164157.1408319287,
+      "p95_latency_ms": 585616.8979990762,
+      "avg_tokens": 52084.744680851065,
+      "avg_prompt_tokens": 39131.82978723404,
+      "avg_completion_tokens": 12952.91489361702,
+      "total_tokens": 2447983.0,
+      "total_prompt_tokens": 1839196.0,
+      "total_completion_tokens": 608787.0,
+      "cost_usd": 8.386865
+    },
+    "Rule System Application": {
+      "avg_latency_ms": 85144.73804363591,
+      "p50_latency_ms": 51110.125499777496,
+      "p95_latency_ms": 273933.658874128,
+      "avg_tokens": 34945.01612903226,
+      "avg_prompt_tokens": 29083.677419354837,
+      "avg_completion_tokens": 5861.3387096774195,
+      "total_tokens": 2166591.0,
+      "total_prompt_tokens": 1803188.0,
+      "total_completion_tokens": 363403.0,
+      "cost_usd": 5.888014999999999
+    },
+    "Domain Knowledge Reasoning": {
+      "avg_latency_ms": 136826.1469049352,
+      "p50_latency_ms": 69564.83533396386,
+      "p95_latency_ms": 480594.3401658442,
+      "avg_tokens": 45728.56470588235,
+      "avg_prompt_tokens": 36425.65882352941,
+      "avg_completion_tokens": 9302.905882352941,
+      "total_tokens": 3886928.0,
+      "total_prompt_tokens": 3096181.0,
+      "total_completion_tokens": 790747.0,
+      "cost_usd": 11.77769625
+    },
+    "Empirical Discovery & Simulation": {
+      "avg_latency_ms": 79574.29211800142,
+      "p50_latency_ms": 78445.66437508911,
+      "p95_latency_ms": 148611.59808305092,
+      "avg_tokens": 66940.83333333333,
+      "avg_prompt_tokens": 61253.5,
+      "avg_completion_tokens": 5687.333333333333,
+      "total_tokens": 401645.0,
+      "total_prompt_tokens": 367521.0,
+      "total_completion_tokens": 34124.0,
+      "cost_usd": 0.80064125
+    }
+  },
+  "baseline_v4_diagnostics": {
+    "carryover_coverage_pct": 0.0,
+    "learned_retrieval_rate": 0.0,
+    "capped_output_rate_pct": 0.0,
+    "mean_step_score": 0.0,
+    "quality_gate_apply_rate_pct": 0.0,
+    "resume_recovery_rate": 0.0,
+    "memory_write_failure_rate": 0.0,
+    "progress_checkpoint_count": 0,
+    "has_v5_fields": false,
+    "num_rows": 200
+  },
+  "ace_v4_diagnostics": {
+    "carryover_coverage_pct": 0.0,
+    "learned_retrieval_rate": 0.0,
+    "capped_output_rate_pct": 0.0,
+    "mean_step_score": 0.8077914536078806,
+    "quality_gate_apply_rate_pct": 0.0,
+    "resume_recovery_rate": 100.0,
+    "memory_write_failure_rate": 0.0,
+    "progress_checkpoint_count": 200,
+    "has_v5_fields": true,
+    "num_rows": 200
+  },
+  "baseline_v5_diagnostics": {
+    "carryover_coverage_pct": 0.0,
+    "learned_retrieval_rate": 0.0,
+    "capped_output_rate_pct": 0.0,
+    "mean_step_score": 0.0,
+    "quality_gate_apply_rate_pct": 0.0,
+    "resume_recovery_rate": 0.0,
+    "memory_write_failure_rate": 0.0,
+    "progress_checkpoint_count": 0,
+    "has_v5_fields": false,
+    "num_rows": 200
+  },
+  "ace_v5_diagnostics": {
+    "carryover_coverage_pct": 0.0,
+    "learned_retrieval_rate": 0.0,
+    "capped_output_rate_pct": 0.0,
+    "mean_step_score": 0.8077914536078806,
+    "quality_gate_apply_rate_pct": 0.0,
+    "resume_recovery_rate": 100.0,
+    "memory_write_failure_rate": 0.0,
+    "progress_checkpoint_count": 200,
+    "has_v5_fields": true,
+    "num_rows": 200
+  },
+  "baseline_planner_diagnostics": {},
+  "ace_planner_diagnostics": {
+    "num_rows": 200,
+    "planner_rows": 200,
+    "action_counts": {
+      "refine": 58,
+      "deep_refine": 60,
+      "explore": 44,
+      "direct": 38
+    },
+    "action_distribution_pct": {
+      "deep_refine": 30.0,
+      "direct": 19.0,
+      "explore": 22.0,
+      "refine": 28.999999999999996
+    },
+    "dominant_action": "deep_refine",
+    "dominant_action_pct": 30.0,
+    "explore_rate_pct": 9.5,
+    "recursion_success_rate_pct": 28.999999999999996,
+    "mean_reward_proxy": 0.6732852994843345,
+    "policy_update_count": 200,
+    "policy_update_rate_pct": 100.0
+  },
+  "full_pipeline_cost_metered": {
+    "baseline_total_cost_usd": 13.3479975,
+    "ace_total_cost_usd": 155.9740125,
+    "combined_total_cost_usd": 169.32200999999998,
+    "baseline_total_tokens": 3689423.0,
+    "ace_total_tokens": 98305847.0,
+    "combined_total_tokens": 101995270.0
+  },
+  "cost_breakdown_by_phase": {
+    "inference_baseline": {
+      "phase_key": "inference_baseline",
+      "label": "Inference (Baseline)",
+      "provider": "openai",
+      "model": "gpt-5.1",
+      "prompt_tokens": 1742275.0,
+      "completion_tokens": 466631.0,
+      "total_tokens": 2208906.0,
+      "cost_usd": 6.84415375,
+      "source_path": ""
+    },
+    "inference_ace_primary": {
+      "phase_key": "inference_ace_primary",
+      "label": "Inference (ACE Primary)",
+      "provider": "openai",
+      "model": "gpt-5.1",
+      "prompt_tokens": 7106086.0,
+      "completion_tokens": 1797061.0,
+      "total_tokens": 8903147.0,
+      "cost_usd": 26.8532175,
+      "source_path": ""
+    },
+    "ace_auxiliary": {
+      "phase_key": "ace_auxiliary",
+      "label": "ACE Auxiliary (Reflector/Step)",
+      "provider": "openai",
+      "model": "gpt-5.1",
+      "prompt_tokens": 86460145.0,
+      "completion_tokens": 1471621.0,
+      "total_tokens": 87931766.0,
+      "cost_usd": 122.79139125,
+      "source_path": "benchmark/results/v5/ace_v5_metrics.json"
+    },
+    "eval_baseline": {
+      "phase_key": "eval_baseline",
+      "label": "Evaluation (Baseline)",
+      "provider": "openai",
+      "model": "gpt-5.1",
+      "prompt_tokens": 664536.0,
+      "completion_tokens": 445322.0,
+      "total_tokens": 1109858.0,
+      "cost_usd": 5.2838899999999995,
+      "source_path": "benchmark/results/v5/baseline_v5_graded_eval_metrics.json"
+    },
+    "eval_ace": {
+      "phase_key": "eval_ace",
+      "label": "Evaluation (ACE)",
+      "provider": "openai",
+      "model": "gpt-5.1",
+      "prompt_tokens": 685494.0,
+      "completion_tokens": 428932.0,
+      "total_tokens": 1114426.0,
+      "cost_usd": 5.1461875,
+      "source_path": "benchmark/results/v5/ace_v5_graded_eval_metrics.json"
+    },
+    "error_baseline": {
+      "phase_key": "error_baseline",
+      "label": "Error Analysis (Baseline)",
+      "provider": "openai",
+      "model": "gpt-5.1",
+      "prompt_tokens": 284187.0,
+      "completion_tokens": 86472.0,
+      "total_tokens": 370659.0,
+      "cost_usd": 1.21995375,
+      "source_path": "benchmark/results/v5/baseline_v5_graded_errors_error_metrics.json"
+    },
+    "error_ace": {
+      "phase_key": "error_ace",
+      "label": "Error Analysis (ACE)",
+      "provider": "openai",
+      "model": "gpt-5.1",
+      "prompt_tokens": 272213.0,
+      "completion_tokens": 84295.0,
+      "total_tokens": 356508.0,
+      "cost_usd": 1.18321625,
+      "source_path": "benchmark/results/v5/ace_v5_graded_errors_error_metrics.json"
+    },
+    "baseline_total": {
+      "phase_key": "baseline_total",
+      "label": "Baseline Total",
+      "prompt_tokens": 2690998.0,
+      "completion_tokens": 998425.0,
+      "total_tokens": 3689423.0,
+      "cost_usd": 13.3479975
+    },
+    "ace_total": {
+      "phase_key": "ace_total",
+      "label": "ACE Total",
+      "prompt_tokens": 94523938.0,
+      "completion_tokens": 3781909.0,
+      "total_tokens": 98305847.0,
+      "cost_usd": 155.9740125
+    },
+    "combined_total": {
+      "phase_key": "combined_total",
+      "label": "Combined Full Pipeline Total",
+      "prompt_tokens": 97214936.0,
+      "completion_tokens": 4780334.0,
+      "total_tokens": 101995270.0,
+      "cost_usd": 169.32200999999998
+    }
+  },
+  "openai_billed_reconciliation": {
+    "status": "disabled_policy_off",
+    "metered_cost_usd": 169.32200999999998,
+    "note": "Billing reconciliation disabled by policy."
+  },
+  "cost_reconciliation_status": "disabled_policy_off",
+  "cost_mode": "dual_source",
+  "billing_policy": "off",
+  "metric_paths": {
+    "ace_aux_metrics": "benchmark/results/v5/ace_v5_metrics.json",
+    "baseline_eval_metrics": "benchmark/results/v5/baseline_v5_graded_eval_metrics.json",
+    "ace_eval_metrics": "benchmark/results/v5/ace_v5_graded_eval_metrics.json",
+    "baseline_error_metrics": "benchmark/results/v5/baseline_v5_graded_errors_error_metrics.json",
+    "ace_error_metrics": "benchmark/results/v5/ace_v5_graded_errors_error_metrics.json"
+  }
+}

@@ -345,6 +345,28 @@ def main() -> None:
     )
     _mark_phase_end(run_meta_path, "compare")
 
+    # ── Sanitize JSONL artifacts (strip messages, model_output, rubrics, etc.) ──
+    print("Sanitizing result artifacts...")
+    _mark_phase_start(run_meta_path, "sanitize")
+    sanitize_report = os.path.join(args.output_dir, "sanitize_report_v5.json")
+    sanitize_cmd = [
+        sys.executable,
+        "-m",
+        "benchmark.sanitize",
+        "--input-root",
+        args.output_dir,
+        "--version",
+        "all",
+        "--report-path",
+        sanitize_report,
+        "--mode",
+        "strict",
+        "--in-place",
+    ]
+    subprocess.run(sanitize_cmd, check = True)
+    _mark_phase_end(run_meta_path, "sanitize")
+    print(f"Sanitization report: {sanitize_report}")
+
     print("V5 pipeline complete.")
 
 

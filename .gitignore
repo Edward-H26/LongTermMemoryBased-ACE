@@ -12,3 +12,8 @@ conversation_memory.json
 ace_memory_export.txt
 .DS_Store
 *.log
+
+# Benchmark working files (may contain raw task context with secret-like patterns)
+*.progress.jsonl
+*.complete.json
+_scan*.py

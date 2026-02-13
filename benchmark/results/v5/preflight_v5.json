@@ -1,0 +1,211 @@
+{
+  "generated_at": "2026-02-13T01:49:35.128047+00:00",
+  "preflight_mode": "both",
+  "status": "failed",
+  "blocking_issues": [
+    "post_pipeline_failed code=1"
+  ],
+  "warnings": [
+    "Tracked JSONL artifacts detected in benchmark/results; these are not safe to publish."
+  ],
+  "config": {
+    "manifest": "benchmark/results/v5/subset_manifest_v5_seed42_n200.json",
+    "max_samples": 200,
+    "seed": 42,
+    "sampling_strategy": "context_dense",
+    "memory_scope": "hybrid",
+    "progress_path": "benchmark/results/v5/ace_v5.jsonl.progress.jsonl",
+    "smoke_samples": 5,
+    "smoke_output_dir": "benchmark/results/v5/smoke_v5",
+    "estimate_source": "auto",
+    "context_workers": 6,
+    "step_scoring_mode": "full",
+    "step_score_workers": 12
+  },
+  "static_checks": {
+    "checks": [
+      {
+        "name": "max_samples",
+        "ok": true,
+        "detail": "max_samples=200"
+      },
+      {
+        "name": "smoke_samples",
+        "ok": true,
+        "detail": "smoke_samples=5"
+      },
+      {
+        "name": "sampling_strategy",
+        "ok": true,
+        "detail": "context_dense"
+      },
+      {
+        "name": "memory_scope",
+        "ok": true,
+        "detail": "hybrid"
+      },
+      {
+        "name": "required_env",
+        "ok": true,
+        "detail": "all present"
+      },
+      {
+        "name": "strict_billing_env",
+        "ok": true,
+        "detail": "strict billing prerequisites satisfied"
+      },
+      {
+        "name": "benchmark_modules",
+        "ok": true,
+        "detail": "all importable"
+      },
+      {
+        "name": "runtime_packages",
+        "ok": true,
+        "detail": "all importable"
+      },
+      {
+        "name": "manifest_path",
+        "ok": true,
+        "detail": "manifest will be created"
+      },
+      {
+        "name": "output_dir",
+        "ok": true,
+        "detail": "output_dir=benchmark/results/v5"
+      },
+      {
+        "name": "progress_path",
+        "ok": true,
+        "detail": "progress_path=benchmark/results/v5/ace_v5.jsonl.progress.jsonl"
+      },
+      {
+        "name": "connectivity_probes",
+        "ok": true,
+        "detail": "optional probes skipped in static mode"
+      },
+      {
+        "name": "unsanitized_jsonl_scan",
+        "ok": true,
+        "detail": "no unsanitized JSONL detected"
+      },
+      {
+        "name": "tracked_jsonl_policy",
+        "ok": false,
+        "detail": [
+          "benchmark/results/v1/ace.jsonl",
+          "benchmark/results/v1/ace_graded.jsonl",
+          "benchmark/results/v1/ace_graded_errors.jsonl",
+          "benchmark/results/v1/baseline.jsonl",
+          "benchmark/results/v1/baseline_graded.jsonl",
+          "benchmark/results/v1/baseline_graded_errors.jsonl",
+          "benchmark/results/v2/ace_v2.jsonl",
+          "benchmark/results/v2/ace_v2_graded.jsonl",
+          "benchmark/results/v2/ace_v2_graded_errors.jsonl",
+          "benchmark/results/v2/baseline_v2.jsonl"
+        ]
+      }
+    ],
+    "blocking_issues": [],
+    "warnings": [
+      "Tracked JSONL artifacts detected in benchmark/results; these are not safe to publish."
+    ],
+    "status": "ok"
+  },
+  "estimate": {
+    "source": {
+      "selected": "v4",
+      "path": "benchmark/results/v4/comparison_report_v4.json"
+    },
+    "target_samples": 200,
+    "phases": {
+      "inference": {
+        "cost_usd": 13.728644999999998,
+        "wall_seconds": 7963.340899502626,
+        "baseline_prompt_tokens": 1751820.0,
+        "baseline_completion_tokens": 460910.99999999994,
+        "ace_prompt_tokens": 1783216.0,
+        "ace_completion_tokens": 470074.0
+      },
+      "step_scoring_overhead": {
+        "cost_usd": 17.691842630937884,
+        "wall_seconds": 110.51360007961046,
+        "mode": "full",
+        "total_llm_step_calls": 2880.0,
+        "non_empty_rate": 0.8,
+        "mean_steps": 18.0,
+        "llm_steps_per_non_empty": 18.0,
+        "prompt_tokens_per_call": 4232.666260657735,
+        "completion_tokens_per_call": 85.21680876979293,
+        "seconds_per_call": 2.762840001990261
+      },
+      "evaluation": {
+        "cost_usd": 2.5,
+        "wall_seconds": 4200.0
+      },
+      "error_analysis": {
+        "cost_usd": 1.1934,
+        "wall_seconds": 1113.0,
+        "baseline_failed_est": 159.0,
+        "ace_failed_est": 153.0
+      },
+      "compare": {
+        "cost_usd": 0.0,
+        "wall_seconds": 8.0
+      }
+    },
+    "totals": {
+      "base": {
+        "cost_usd": 35.11388763093788,
+        "wall_seconds": 13394.854499582236
+      },
+      "low": {
+        "cost_usd": 28.091110104750307,
+        "wall_seconds": 10715.883599665789
+      },
+      "high": {
+        "cost_usd": 47.40374830176614,
+        "wall_seconds": 18752.796299415128
+      }
+    },
+    "assumptions": [
+      "Estimates scaled by ratio=1.0000 from source tasks to target tasks.",
+      "Eval stage assumes 21.0s per task per side in parallel.",
+      "Error stage assumes 7.0s per failed task per side in parallel.",
+      "Step scoring token and latency assumptions use empirical auxiliary-call profile from ['benchmark/results/v4/ace_v4_metrics.json'].",
+      "Step scoring assumes 2.76s latency per verifier call with 12 step workers.",
+      "Context parallelism factor for step overhead capped at 6.0.",
+      "Step scoring inputs used fallback defaults due missing local artifacts."
+    ],
+    "step_inputs": {
+      "mean_steps": 18.0,
+      "non_empty_rate": 0.8,
+      "source_paths": [],
+      "fallback_used": true
+    },
+    "step_profile": {
+      "prompt_tokens_per_call": 4232.666260657735,
+      "completion_tokens_per_call": 85.21680876979293,
+      "seconds_per_call": 2.762840001990261,
+      "source_paths": [
+        "benchmark/results/v4/ace_v4_metrics.json"
+      ],
+      "fallback_used": false,
+      "source_total_calls": 4105.0
+    }
+  },
+  "smoke": {
+    "status": "failed",
+    "error": "post_pipeline_failed code=1",
+    "post_command": [
+      "/opt/anaconda3/bin/python",
+      "-m",
+      "benchmark.v5.complete_pipeline",
+      "--output-dir",
+      "benchmark/results/v5/smoke_v5",
+      "--max-samples",
+      "5",
+      "--skip-wait"
+    ]
+  }
+}

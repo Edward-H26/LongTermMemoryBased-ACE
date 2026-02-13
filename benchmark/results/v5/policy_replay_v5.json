@@ -1,0 +1,145 @@
+{
+  "generated_at": "2026-02-13T06:22:54.535937+00:00",
+  "mode": "both",
+  "baseline_policy_path": "benchmark/results/v5/planner_policy_baseline_v5.json",
+  "ace_policy_path": "benchmark/results/v5/planner_policy_ace_v5.json",
+  "baseline": {
+    "stream": "baseline_v5",
+    "rows": 200,
+    "unique_task_ids": 200,
+    "updates": 0,
+    "skipped": 200,
+    "mean_terminal_reward": 0.0,
+    "updates_by_action": {},
+    "policy_state": {
+      "policy_type": "bandit",
+      "epsilon": 0.08,
+      "ucb_c": 1.1,
+      "total_pulls": 0,
+      "total_updates": 0,
+      "actions": {
+        "deep_refine": {
+          "pulls": 0,
+          "updates": 0,
+          "reward_sum": 0.0,
+          "reward_sq_sum": 0.0,
+          "last_reward": 0.0,
+          "last_confidence": 0.0,
+          "last_updated_at": "",
+          "mean_reward": 0.5,
+          "variance": 0.0,
+          "ucb_score": 1.8954998652974717
+        },
+        "direct": {
+          "pulls": 0,
+          "updates": 0,
+          "reward_sum": 0.0,
+          "reward_sq_sum": 0.0,
+          "last_reward": 0.0,
+          "last_confidence": 0.0,
+          "last_updated_at": "",
+          "mean_reward": 0.5,
+          "variance": 0.0,
+          "ucb_score": 1.8954998652974717
+        },
+        "explore": {
+          "pulls": 0,
+          "updates": 0,
+          "reward_sum": 0.0,
+          "reward_sq_sum": 0.0,
+          "last_reward": 0.0,
+          "last_confidence": 0.0,
+          "last_updated_at": "",
+          "mean_reward": 0.5,
+          "variance": 0.0,
+          "ucb_score": 1.8954998652974717
+        },
+        "refine": {
+          "pulls": 0,
+          "updates": 0,
+          "reward_sum": 0.0,
+          "reward_sq_sum": 0.0,
+          "last_reward": 0.0,
+          "last_confidence": 0.0,
+          "last_updated_at": "",
+          "mean_reward": 0.5,
+          "variance": 0.0,
+          "ucb_score": 1.8954998652974717
+        }
+      },
+      "state_path": "benchmark/results/v5/planner_policy_baseline_v5.json"
+    }
+  },
+  "ace": {
+    "stream": "ace_v5",
+    "rows": 200,
+    "unique_task_ids": 200,
+    "updates": 200,
+    "skipped": 0,
+    "mean_terminal_reward": 0.4959711796906005,
+    "updates_by_action": {
+      "refine": 58,
+      "deep_refine": 60,
+      "explore": 44,
+      "direct": 38
+    },
+    "policy_state": {
+      "policy_type": "bandit",
+      "epsilon": 0.08,
+      "ucb_c": 1.1,
+      "total_pulls": 200,
+      "total_updates": 400,
+      "actions": {
+        "deep_refine": {
+          "pulls": 60,
+          "updates": 120,
+          "reward_sum": 50.66773997929743,
+          "reward_sq_sum": 23.44240688304658,
+          "last_reward": 0.4218400274236194,
+          "last_confidence": 0.6950194272466643,
+          "last_updated_at": "2026-02-13T06:22:54.535744+00:00",
+          "mean_reward": 0.42223116649414527,
+          "variance": 0.017074232733048228,
+          "ucb_score": 0.7471735844638898
+        },
+        "direct": {
+          "pulls": 38,
+          "updates": 76,
+          "reward_sum": 27.656782197365235,
+          "reward_sq_sum": 11.458930334341359,
+          "last_reward": 0.26794849427132933,
+          "last_confidence": 0.47928657046520995,
+          "last_updated_at": "2026-02-13T06:22:54.535805+00:00",
+          "mean_reward": 0.36390502891270043,
+          "variance": 0.01834852906811718,
+          "ucb_score": 0.7702912944146896
+        },
+        "explore": {
+          "pulls": 44,
+          "updates": 88,
+          "reward_sum": 34.1856105226533,
+          "reward_sq_sum": 14.575806707722649,
+          "last_reward": 0.37994170665779065,
+          "last_confidence": 0.6434375072719422,
+          "last_updated_at": "2026-02-13T06:22:54.535416+00:00",
+          "mean_reward": 0.38847284684833294,
+          "variance": 0.014723014394763562,
+          "ucb_score": 0.7667978709790392
+        },
+        "refine": {
+          "pulls": 58,
+          "updates": 116,
+          "reward_sum": 49.570125148751224,
+          "reward_sq_sum": 23.39544774263034,
+          "last_reward": 0.5277033200255793,
+          "last_confidence": 0.2696535877780211,
+          "last_updated_at": "2026-02-13T06:22:54.535866+00:00",
+          "mean_reward": 0.4273286650754416,
+          "variance": 0.019075106337861247,
+          "ucb_score": 0.7577326826454431
+        }
+      },
+      "state_path": "benchmark/results/v5/planner_policy_ace_v5.json"
+    }
+  }
+}

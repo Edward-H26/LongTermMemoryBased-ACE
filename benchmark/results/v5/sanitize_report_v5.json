@@ -1,0 +1,446 @@
+{
+  "generated_at": "2026-02-13T07:20:54.998884+00:00",
+  "input_root": "benchmark/results",
+  "version": "v5",
+  "in_place": true,
+  "mode": "strict",
+  "status": "ok",
+  "files_processed": 12,
+  "rows_processed": 1141,
+  "columns_removed": {
+    "messages": 1141,
+    "model_output": 1141,
+    "rubrics": 1141,
+    "grading_rationale": 731
+  },
+  "nested_fields_removed": {
+    "metrics.memory_error": 567,
+    "metrics.step_scoring.steps": 567,
+    "error_classification.per_rubric_classification": 321
+  },
+  "secret_hits_before": {
+    "stripe_secret": 606,
+    "stripe_restricted": 0,
+    "aws_access_key_id": 0,
+    "google_api_key": 0,
+    "slack_token": 0,
+    "github_token": 0,
+    "generic_bearer": 0
+  },
+  "secret_hits_after": {
+    "stripe_secret": 0,
+    "stripe_restricted": 0,
+    "aws_access_key_id": 0,
+    "google_api_key": 0,
+    "slack_token": 0,
+    "github_token": 0,
+    "generic_bearer": 0
+  },
+  "parse_errors": [],
+  "files": [
+    {
+      "path": "benchmark/results/v5/ace_v5.jsonl",
+      "file_class": "inference",
+      "rows": 200,
+      "parse_errors": [],
+      "columns_removed": {
+        "messages": 200,
+        "model_output": 200,
+        "rubrics": 200
+      },
+      "nested_fields_removed": {
+        "metrics.memory_error": 200,
+        "metrics.step_scoring.steps": 200
+      },
+      "secret_hits_before": {
+        "stripe_secret": 102,
+        "stripe_restricted": 0,
+        "aws_access_key_id": 0,
+        "google_api_key": 0,
+        "slack_token": 0,
+        "github_token": 0,
+        "generic_bearer": 0
+      },
+      "secret_hits_after": {
+        "stripe_secret": 0,
+        "stripe_restricted": 0,
+        "aws_access_key_id": 0,
+        "google_api_key": 0,
+        "slack_token": 0,
+        "github_token": 0,
+        "generic_bearer": 0
+      },
+      "updated": true
+    },
+    {
+      "path": "benchmark/results/v5/ace_v5_graded.jsonl",
+      "file_class": "graded",
+      "rows": 200,
+      "parse_errors": [],
+      "columns_removed": {
+        "messages": 200,
+        "model_output": 200,
+        "rubrics": 200,
+        "grading_rationale": 200
+      },
+      "nested_fields_removed": {
+        "metrics.memory_error": 200,
+        "metrics.step_scoring.steps": 200
+      },
+      "secret_hits_before": {
+        "stripe_secret": 102,
+        "stripe_restricted": 0,
+        "aws_access_key_id": 0,
+        "google_api_key": 0,
+        "slack_token": 0,
+        "github_token": 0,
+        "generic_bearer": 0
+      },
+      "secret_hits_after": {
+        "stripe_secret": 0,
+        "stripe_restricted": 0,
+        "aws_access_key_id": 0,
+        "google_api_key": 0,
+        "slack_token": 0,
+        "github_token": 0,
+        "generic_bearer": 0
+      },
+      "updated": true
+    },
+    {
+      "path": "benchmark/results/v5/ace_v5_graded_errors.jsonl",
+      "file_class": "graded_errors",
+      "rows": 154,
+      "parse_errors": [],
+      "columns_removed": {
+        "messages": 154,
+        "model_output": 154,
+        "rubrics": 154,
+        "grading_rationale": 154
+      },
+      "nested_fields_removed": {
+        "metrics.memory_error": 154,
+        "metrics.step_scoring.steps": 154,
+        "error_classification.per_rubric_classification": 154
+      },
+      "secret_hits_before": {
+        "stripe_secret": 102,
+        "stripe_restricted": 0,
+        "aws_access_key_id": 0,
+        "google_api_key": 0,
+        "slack_token": 0,
+        "github_token": 0,
+        "generic_bearer": 0
+      },
+      "secret_hits_after": {
+        "stripe_secret": 0,
+        "stripe_restricted": 0,
+        "aws_access_key_id": 0,
+        "google_api_key": 0,
+        "slack_token": 0,
+        "github_token": 0,
+        "generic_bearer": 0
+      },
+      "updated": true
+    },
+    {
+      "path": "benchmark/results/v5/baseline_v5.jsonl",
+      "file_class": "inference",
+      "rows": 200,
+      "parse_errors": [],
+      "columns_removed": {
+        "messages": 200,
+        "model_output": 200,
+        "rubrics": 200
+      },
+      "nested_fields_removed": {},
+      "secret_hits_before": {
+        "stripe_secret": 100,
+        "stripe_restricted": 0,
+        "aws_access_key_id": 0,
+        "google_api_key": 0,
+        "slack_token": 0,
+        "github_token": 0,
+        "generic_bearer": 0
+      },
+      "secret_hits_after": {
+        "stripe_secret": 0,
+        "stripe_restricted": 0,
+        "aws_access_key_id": 0,
+        "google_api_key": 0,
+        "slack_token": 0,
+        "github_token": 0,
+        "generic_bearer": 0
+      },
+      "updated": true
+    },
+    {
+      "path": "benchmark/results/v5/baseline_v5_graded.jsonl",
+      "file_class": "graded",
+      "rows": 200,
+      "parse_errors": [],
+      "columns_removed": {
+        "messages": 200,
+        "model_output": 200,
+        "rubrics": 200,
+        "grading_rationale": 200
+      },
+      "nested_fields_removed": {},
+      "secret_hits_before": {
+        "stripe_secret": 100,
+        "stripe_restricted": 0,
+        "aws_access_key_id": 0,
+        "google_api_key": 0,
+        "slack_token": 0,
+        "github_token": 0,
+        "generic_bearer": 0
+      },
+      "secret_hits_after": {
+        "stripe_secret": 0,
+        "stripe_restricted": 0,
+        "aws_access_key_id": 0,
+        "google_api_key": 0,
+        "slack_token": 0,
+        "github_token": 0,
+        "generic_bearer": 0
+      },
+      "updated": true
+    },
+    {
+      "path": "benchmark/results/v5/baseline_v5_graded_errors.jsonl",
+      "file_class": "graded_errors",
+      "rows": 161,
+      "parse_errors": [],
+      "columns_removed": {
+        "messages": 161,
+        "model_output": 161,
+        "rubrics": 161,
+        "grading_rationale": 161
+      },
+      "nested_fields_removed": {
+        "error_classification.per_rubric_classification": 161
+      },
+      "secret_hits_before": {
+        "stripe_secret": 100,
+        "stripe_restricted": 0,
+        "aws_access_key_id": 0,
+        "google_api_key": 0,
+        "slack_token": 0,
+        "github_token": 0,
+        "generic_bearer": 0
+      },
+      "secret_hits_after": {
+        "stripe_secret": 0,
+        "stripe_restricted": 0,
+        "aws_access_key_id": 0,
+        "google_api_key": 0,
+        "slack_token": 0,
+        "github_token": 0,
+        "generic_bearer": 0
+      },
+      "updated": true
+    },
+    {
+      "path": "benchmark/results/v5/smoke_v5/ace_v5.jsonl",
+      "file_class": "inference",
+      "rows": 5,
+      "parse_errors": [],
+      "columns_removed": {
+        "messages": 5,
+        "model_output": 5,
+        "rubrics": 5
+      },
+      "nested_fields_removed": {
+        "metrics.memory_error": 5,
+        "metrics.step_scoring.steps": 5
+      },
+      "secret_hits_before": {
+        "stripe_secret": 0,
+        "stripe_restricted": 0,
+        "aws_access_key_id": 0,
+        "google_api_key": 0,
+        "slack_token": 0,
+        "github_token": 0,
+        "generic_bearer": 0
+      },
+      "secret_hits_after": {
+        "stripe_secret": 0,
+        "stripe_restricted": 0,
+        "aws_access_key_id": 0,
+        "google_api_key": 0,
+        "slack_token": 0,
+        "github_token": 0,
+        "generic_bearer": 0
+      },
+      "updated": true
+    },
+    {
+      "path": "benchmark/results/v5/smoke_v5/ace_v5_graded.jsonl",
+      "file_class": "graded",
+      "rows": 5,
+      "parse_errors": [],
+      "columns_removed": {
+        "messages": 5,
+        "model_output": 5,
+        "rubrics": 5,
+        "grading_rationale": 5
+      },
+      "nested_fields_removed": {
+        "metrics.memory_error": 5,
+        "metrics.step_scoring.steps": 5
+      },
+      "secret_hits_before": {
+        "stripe_secret": 0,
+        "stripe_restricted": 0,
+        "aws_access_key_id": 0,
+        "google_api_key": 0,
+        "slack_token": 0,
+        "github_token": 0,
+        "generic_bearer": 0
+      },
+      "secret_hits_after": {
+        "stripe_secret": 0,
+        "stripe_restricted": 0,
+        "aws_access_key_id": 0,
+        "google_api_key": 0,
+        "slack_token": 0,
+        "github_token": 0,
+        "generic_bearer": 0
+      },
+      "updated": true
+    },
+    {
+      "path": "benchmark/results/v5/smoke_v5/ace_v5_graded_errors.jsonl",
+      "file_class": "graded_errors",
+      "rows": 3,
+      "parse_errors": [],
+      "columns_removed": {
+        "messages": 3,
+        "model_output": 3,
+        "rubrics": 3,
+        "grading_rationale": 3
+      },
+      "nested_fields_removed": {
+        "metrics.memory_error": 3,
+        "metrics.step_scoring.steps": 3,
+        "error_classification.per_rubric_classification": 3
+      },
+      "secret_hits_before": {
+        "stripe_secret": 0,
+        "stripe_restricted": 0,
+        "aws_access_key_id": 0,
+        "google_api_key": 0,
+        "slack_token": 0,
+        "github_token": 0,
+        "generic_bearer": 0
+      },
+      "secret_hits_after": {
+        "stripe_secret": 0,
+        "stripe_restricted": 0,
+        "aws_access_key_id": 0,
+        "google_api_key": 0,
+        "slack_token": 0,
+        "github_token": 0,
+        "generic_bearer": 0
+      },
+      "updated": true
+    },
+    {
+      "path": "benchmark/results/v5/smoke_v5/baseline_v5.jsonl",
+      "file_class": "inference",
+      "rows": 5,
+      "parse_errors": [],
+      "columns_removed": {
+        "messages": 5,
+        "model_output": 5,
+        "rubrics": 5
+      },
+      "nested_fields_removed": {},
+      "secret_hits_before": {
+        "stripe_secret": 0,
+        "stripe_restricted": 0,
+        "aws_access_key_id": 0,
+        "google_api_key": 0,
+        "slack_token": 0,
+        "github_token": 0,
+        "generic_bearer": 0
+      },
+      "secret_hits_after": {
+        "stripe_secret": 0,
+        "stripe_restricted": 0,
+        "aws_access_key_id": 0,
+        "google_api_key": 0,
+        "slack_token": 0,
+        "github_token": 0,
+        "generic_bearer": 0
+      },
+      "updated": true
+    },
+    {
+      "path": "benchmark/results/v5/smoke_v5/baseline_v5_graded.jsonl",
+      "file_class": "graded",
+      "rows": 5,
+      "parse_errors": [],
+      "columns_removed": {
+        "messages": 5,
+        "model_output": 5,
+        "rubrics": 5,
+        "grading_rationale": 5
+      },
+      "nested_fields_removed": {},
+      "secret_hits_before": {
+        "stripe_secret": 0,
+        "stripe_restricted": 0,
+        "aws_access_key_id": 0,
+        "google_api_key": 0,
+        "slack_token": 0,
+        "github_token": 0,
+        "generic_bearer": 0
+      },
+      "secret_hits_after": {
+        "stripe_secret": 0,
+        "stripe_restricted": 0,
+        "aws_access_key_id": 0,
+        "google_api_key": 0,
+        "slack_token": 0,
+        "github_token": 0,
+        "generic_bearer": 0
+      },
+      "updated": true
+    },
+    {
+      "path": "benchmark/results/v5/smoke_v5/baseline_v5_graded_errors.jsonl",
+      "file_class": "graded_errors",
+      "rows": 3,
+      "parse_errors": [],
+      "columns_removed": {
+        "messages": 3,
+        "model_output": 3,
+        "rubrics": 3,
+        "grading_rationale": 3
+      },
+      "nested_fields_removed": {
+        "error_classification.per_rubric_classification": 3
+      },
+      "secret_hits_before": {
+        "stripe_secret": 0,
+        "stripe_restricted": 0,
+        "aws_access_key_id": 0,
+        "google_api_key": 0,
+        "slack_token": 0,
+        "github_token": 0,
+        "generic_bearer": 0
+      },
+      "secret_hits_after": {
+        "stripe_secret": 0,
+        "stripe_restricted": 0,
+        "aws_access_key_id": 0,
+        "google_api_key": 0,
+        "slack_token": 0,
+        "github_token": 0,
+        "generic_bearer": 0
+      },
+      "updated": true
+    }
+  ]
+}

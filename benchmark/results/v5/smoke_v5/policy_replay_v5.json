@@ -1,0 +1,145 @@
+{
+  "generated_at": "2026-02-13T01:49:14.697128+00:00",
+  "mode": "both",
+  "baseline_policy_path": "benchmark/results/v5/smoke_v5/planner_policy_baseline_v5.json",
+  "ace_policy_path": "benchmark/results/v5/smoke_v5/planner_policy_ace_v5.json",
+  "baseline": {
+    "stream": "baseline_v5",
+    "rows": 5,
+    "unique_task_ids": 5,
+    "updates": 0,
+    "skipped": 5,
+    "mean_terminal_reward": 0.0,
+    "updates_by_action": {},
+    "policy_state": {
+      "policy_type": "bandit",
+      "epsilon": 0.08,
+      "ucb_c": 1.1,
+      "total_pulls": 0,
+      "total_updates": 0,
+      "actions": {
+        "deep_refine": {
+          "pulls": 0,
+          "updates": 0,
+          "reward_sum": 0.0,
+          "reward_sq_sum": 0.0,
+          "last_reward": 0.0,
+          "last_confidence": 0.0,
+          "last_updated_at": "",
+          "mean_reward": 0.5,
+          "variance": 0.0,
+          "ucb_score": 1.8954998652974717
+        },
+        "direct": {
+          "pulls": 0,
+          "updates": 0,
+          "reward_sum": 0.0,
+          "reward_sq_sum": 0.0,
+          "last_reward": 0.0,
+          "last_confidence": 0.0,
+          "last_updated_at": "",
+          "mean_reward": 0.5,
+          "variance": 0.0,
+          "ucb_score": 1.8954998652974717
+        },
+        "explore": {
+          "pulls": 0,
+          "updates": 0,
+          "reward_sum": 0.0,
+          "reward_sq_sum": 0.0,
+          "last_reward": 0.0,
+          "last_confidence": 0.0,
+          "last_updated_at": "",
+          "mean_reward": 0.5,
+          "variance": 0.0,
+          "ucb_score": 1.8954998652974717
+        },
+        "refine": {
+          "pulls": 0,
+          "updates": 0,
+          "reward_sum": 0.0,
+          "reward_sq_sum": 0.0,
+          "last_reward": 0.0,
+          "last_confidence": 0.0,
+          "last_updated_at": "",
+          "mean_reward": 0.5,
+          "variance": 0.0,
+          "ucb_score": 1.8954998652974717
+        }
+      },
+      "state_path": "benchmark/results/v5/smoke_v5/planner_policy_baseline_v5.json"
+    }
+  },
+  "ace": {
+    "stream": "ace_v5",
+    "rows": 5,
+    "unique_task_ids": 5,
+    "updates": 5,
+    "skipped": 0,
+    "mean_terminal_reward": 0.5842630141612173,
+    "updates_by_action": {
+      "explore": 1,
+      "direct": 1,
+      "refine": 2,
+      "deep_refine": 1
+    },
+    "policy_state": {
+      "policy_type": "bandit",
+      "epsilon": 0.08,
+      "ucb_c": 1.1,
+      "total_pulls": 5,
+      "total_updates": 10,
+      "actions": {
+        "deep_refine": {
+          "pulls": 1,
+          "updates": 2,
+          "reward_sum": 0.7777205859477752,
+          "reward_sq_sum": 0.32132619583494254,
+          "last_reward": 0.43469426384409443,
+          "last_confidence": 0.6709203318013321,
+          "last_updated_at": "2026-02-13T01:49:14.697037+00:00",
+          "mean_reward": 0.3888602929738876,
+          "variance": 0.009450770465733588,
+          "ucb_score": 1.5691416074330287
+        },
+        "direct": {
+          "pulls": 1,
+          "updates": 2,
+          "reward_sum": 0.8202210358543267,
+          "reward_sq_sum": 0.3435072500811515,
+          "last_reward": 0.7240258931688262,
+          "last_confidence": 0.6488736013748213,
+          "last_updated_at": "2026-02-13T01:49:14.696662+00:00",
+          "mean_reward": 0.41011051792716335,
+          "variance": 0.0035629881260895724,
+          "ucb_score": 1.5903918323863044
+        },
+        "explore": {
+          "pulls": 1,
+          "updates": 2,
+          "reward_sum": 0.8386355578682296,
+          "reward_sq_sum": 0.3736332244267583,
+          "last_reward": 0.4189203067888143,
+          "last_confidence": 0.7507116009993894,
+          "last_updated_at": "2026-02-13T01:49:14.696129+00:00",
+          "mean_reward": 0.4193177789341148,
+          "variance": 0.01098921248313997,
+          "ucb_score": 1.5995990933932558
+        },
+        "refine": {
+          "pulls": 2,
+          "updates": 4,
+          "reward_sum": 2.1252122686964645,
+          "reward_sq_sum": 1.1685572360345668,
+          "last_reward": 0.8699026115831507,
+          "last_confidence": 0.6969304584075977,
+          "last_updated_at": "2026-02-13T01:49:14.696946+00:00",
+          "mean_reward": 0.5313030671741161,
+          "variance": 0.009856359820018368,
+          "ucb_score": 1.494998724962887
+        }
+      },
+      "state_path": "benchmark/results/v5/smoke_v5/planner_policy_ace_v5.json"
+    }
+  }
+}

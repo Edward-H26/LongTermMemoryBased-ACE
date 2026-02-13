@@ -10,10 +10,13 @@ from typing import Any, Dict, List, Tuple
 VERSION_NAMES = {"v1", "v2", "v3", "v4", "v5"}
 
 SECRET_PATTERNS = {
-    "stripe_secret": re.compile(r"\bsk_(?:test|live)_[A-Za-z0-9]{16,}\b"),
+    "stripe_secret": re.compile(r"\b[spr]k_(?:test|live)_[A-Za-z0-9]{16,}\b"),
+    "stripe_restricted": re.compile(r"\brk_(?:test|live)_[A-Za-z0-9]{16,}\b"),
     "aws_access_key_id": re.compile(r"\b(?:AKIA|ASIA)[A-Z0-9]{16}\b"),
     "google_api_key": re.compile(r"\bAIza[0-9A-Za-z_-]{35}\b"),
     "slack_token": re.compile(r"\bxox[baprs]-[0-9A-Za-z-]{10,}\b"),
+    "github_token": re.compile(r"\bgh[pousr]_[A-Za-z0-9]{36,}\b"),
+    "generic_bearer": re.compile(r"\bBearer\s+[A-Za-z0-9_\-\.]{20,}\b"),
 }
 
 INFERENCE_KEEP_FIELDS = ["task_id", "metadata", "metrics"]

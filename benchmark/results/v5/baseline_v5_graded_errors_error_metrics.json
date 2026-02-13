@@ -1,0 +1,17 @@
+{
+  "model": "gpt-5.1",
+  "total_calls": 161,
+  "prompt_tokens": 284187,
+  "completion_tokens": 86472,
+  "total_tokens": 370659,
+  "classified_count": 161,
+  "fallback_count": 0,
+  "api_fail_count": 0,
+  "started_at": "2026-02-13T06:22:55.128578+00:00",
+  "ended_at": "2026-02-13T06:47:31.869588+00:00",
+  "wall_seconds": 1476.7434801671188,
+  "total_input_rows": 200,
+  "failed_rows": 161,
+  "pending_rows": 161,
+  "existing_completed_rows": 0
+}

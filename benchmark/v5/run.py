@@ -370,14 +370,14 @@ def main() -> None:
     parser.add_argument(
         "--sanitize-after-run",
         action = argparse.BooleanOptionalAction,
-        default = False,
-        help = "Run benchmark.sanitize after pipeline completion.",
+        default = True,
+        help = "Run benchmark.sanitize after pipeline completion (default: enabled).",
     )
     parser.add_argument(
         "--sanitize-in-place",
         action = argparse.BooleanOptionalAction,
-        default = False,
-        help = "Rewrite JSONL files in place during sanitize stage.",
+        default = True,
+        help = "Rewrite JSONL files in place during sanitize stage (default: enabled).",
     )
     parser.add_argument(
         "--sanitize-mode",

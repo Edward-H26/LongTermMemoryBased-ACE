@@ -1,0 +1,32 @@
+{
+  "run_id": "v5-20260213T020101Z",
+  "started_at": "2026-02-13T02:01:01.428122+00:00",
+  "ended_at": "2026-02-13T06:51:19.224081+00:00",
+  "manifest": "/Users/edwardhu/Desktop/INFO490/LongTermMemoryBasedSelfEvolvingAlgorithm/benchmark/results/v5/subset_manifest_v5_seed42_n200.json",
+  "seed": 42,
+  "max_samples": 200,
+  "sampling_strategy": "context_dense",
+  "memory_scope": "hybrid",
+  "output_dir": "/Users/edwardhu/Desktop/INFO490/LongTermMemoryBasedSelfEvolvingAlgorithm/benchmark/results/v5",
+  "phases": {
+    "inference": {
+      "started_at": "2026-02-13T02:01:01.429923+00:00",
+      "ended_at": "2026-02-13T04:27:50.233120+00:00"
+    },
+    "evaluation": {
+      "started_at": "2026-02-13T04:28:02.527628+00:00",
+      "ended_at": "2026-02-13T06:22:54.319669+00:00"
+    },
+    "policy_replay": {
+      "started_at": "2026-02-13T06:22:54.372598+00:00",
+      "ended_at": "2026-02-13T06:22:54.544786+00:00"
+    },
+    "error_analysis": {
+      "started_at": "2026-02-13T06:22:54.545040+00:00",
+      "ended_at": "2026-02-13T06:51:19.223606+00:00"
+    },
+    "compare": {
+      "started_at": "2026-02-13T06:51:19.346550+00:00"
+    }
+  }
+}
