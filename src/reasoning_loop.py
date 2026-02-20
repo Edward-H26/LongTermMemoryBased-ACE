@@ -9,10 +9,13 @@ Provides reusable recursive refinement loops for:
 from __future__ import annotations
 
 import os
+import re
 from dataclasses import dataclass
 from typing import Any, Callable, Dict, List, Optional, Tuple
 
 from src.step_scoring import StepScoringConfig, score_reasoning_text
+
+TOKEN_PATTERN = re.compile(r"[a-z0-9]+")
 
 
 def _safe_int(value: Any, default: int) -> int:
@@ -55,6 +58,7 @@ def _empty_step_summary(step_config: Optional[StepScoringConfig] = None) -> Dict
         "config": {
             "mode": cfg.mode,
             "scorer_model": cfg.scorer_model,
+            "scorer_backend": cfg.scorer_backend,
             "workers": cfg.workers,
             "min_score": cfg.min_score,
         },
@@ -71,10 +75,29 @@ def _empty_step_summary(step_config: Optional[StepScoringConfig] = None) -> Dict
     }
 
 
+def _tokenize(text: str) -> List[str]:
+    if not text:
+        return []
+    return TOKEN_PATTERN.findall(text.lower())
+
+
+def _context_overlap_score(question: str, content: str) -> float:
+    question_tokens = set(_tokenize(question))
+    content_tokens = set(_tokenize(content))
+    if not question_tokens or not content_tokens:
+        return 0.0
+    union = len(question_tokens.union(content_tokens))
+    if union <= 0:
+        return 0.0
+    intersection = len(question_tokens.intersection(content_tokens))
+    return _clamp(intersection / union, 0.0, 1.0)
+
+
 def _candidate_quality_score(
     question: str,
     content: str,
     step_config: StepScoringConfig,
+    score_style: str = "legacy",
 ) -> Tuple[float, Dict[str, Any]]:
     if not str(content or "").strip():
         return 0.0, _empty_step_summary(step_config)
@@ -85,7 +108,12 @@ def _candidate_quality_score(
     )
     step_mean = float(summary.get("mean_step_score", 0.0) or 0.0)
     output_valid = 1.0 if str(content).strip() else 0.0
-    score = _clamp(0.75 * step_mean + 0.25 * output_valid, 0.0, 1.0)
+    style = str(score_style or "legacy").strip().lower()
+    if style == "strict_final":
+        context_overlap = _context_overlap_score(question = question, content = content)
+        score = _clamp(0.55 * step_mean + 0.25 * output_valid + 0.20 * context_overlap, 0.0, 1.0)
+    else:
+        score = _clamp(0.75 * step_mean + 0.25 * output_valid, 0.0, 1.0)
     return score, summary
 
 
@@ -115,6 +143,7 @@ def run_recursive_openai_reasoning(
     step_config: Optional[StepScoringConfig] = None,
     loop_config: Optional[ReasoningLoopConfig] = None,
     action_overrides: Optional[Dict[str, Any]] = None,
+    prompt_style: str = "legacy",
 ) -> Dict[str, Any]:
     """
     Run recursive candidate generation with scorer-guided selection.
@@ -124,6 +153,7 @@ def run_recursive_openai_reasoning(
     cfg = loop_config or ReasoningLoopConfig.from_env()
     step_cfg = step_config or StepScoringConfig.from_env()
     overrides = action_overrides or {}
+    style = str(prompt_style or "legacy").strip().lower()
     rounds_planned = max(1, _safe_int(overrides.get("rounds", cfg.max_rounds), cfg.max_rounds))
     candidates_per_round = max(1, _safe_int(overrides.get("candidates", cfg.candidates), cfg.candidates))
     improve_min = _safe_float(overrides.get("improve_min", cfg.improve_min), cfg.improve_min)
@@ -140,30 +170,61 @@ def run_recursive_openai_reasoning(
         round_rows: List[Dict[str, Any]] = []
         for candidate_idx in range(candidates_per_round):
             prompt_messages = [dict(message) for message in base_messages]
+            if style == "strict_final":
+                prompt_messages.append({
+                    "role": "user",
+                    "content": (
+                        "Return only the final answer. Follow all required constraints and output format exactly. "
+                        "Do not include rationale unless explicitly requested."
+                    ),
+                })
             if best is not None and round_idx > 0:
                 prior = str(best.get("content", "")).strip()
                 if candidate_idx == 0:
-                    critique = (
-                        "Refine your previous answer. Fix weak reasoning steps, strengthen factual grounding, "
-                        "and produce a complete final answer."
-                    )
+                    if style == "strict_final":
+                        critique = (
+                            "Refine your previous answer and output only the final answer. "
+                            "Preserve the exact required format from the task. "
+                            "Do not include analysis or rationale unless explicitly requested."
+                        )
+                    else:
+                        critique = (
+                            "Refine your previous answer. Fix weak reasoning steps, strengthen factual grounding, "
+                            "and produce a complete final answer."
+                        )
                 else:
-                    critique = (
-                        "Generate an alternative improved solution path from scratch, while preserving strict "
-                        "format and constraints."
-                    )
+                    if style == "strict_final":
+                        critique = (
+                            "Generate an alternative improved final answer from scratch. "
+                            "Preserve all constraints and exact output format. "
+                            "Output only the final answer text."
+                        )
+                    else:
+                        critique = (
+                            "Generate an alternative improved solution path from scratch, while preserving strict "
+                            "format and constraints."
+                        )
                 prompt_messages.append({
                     "role": "user",
                     "content": f"{critique}\n\nPrevious answer:\n{prior}",
                 })
             elif candidate_idx > 0:
-                prompt_messages.append({
-                    "role": "user",
-                    "content": (
-                        "Provide an alternative reasoning path and final answer. Keep all constraints and "
-                        "format requirements."
-                    ),
-                })
+                if style == "strict_final":
+                    prompt_messages.append({
+                        "role": "user",
+                        "content": (
+                            "Provide an alternative final answer only. Keep all constraints and output format "
+                            "requirements exactly."
+                        ),
+                    })
+                else:
+                    prompt_messages.append({
+                        "role": "user",
+                        "content": (
+                            "Provide an alternative reasoning path and final answer. Keep all constraints and "
+                            "format requirements."
+                        ),
+                    })
 
             content, metrics, error = generate_once(prompt_messages)
             if error:
@@ -173,6 +234,7 @@ def run_recursive_openai_reasoning(
                 question = question,
                 content = content,
                 step_config = step_cfg,
+                score_style = style,
             )
             row = {
                 "round": round_idx + 1,

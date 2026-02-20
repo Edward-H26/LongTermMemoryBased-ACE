@@ -28,6 +28,7 @@ JSON_OBJECT_PATTERN = re.compile(r"\{.*\}", re.DOTALL)
 class StepScoringConfig:
     mode: str = "full"
     scorer_model: str = "gpt-5.1"
+    scorer_backend: str = "openai"
     workers: int = 12
     min_score: float = 0.40
     llm_weight: float = 0.85
@@ -54,6 +55,7 @@ class StepScoringConfig:
         return cls(
             mode = str(os.getenv("ACE_STEP_SCORING_MODE", "full")).strip().lower(),
             scorer_model = str(os.getenv("ACE_STEP_SCORER_MODEL", "gpt-5.1")).strip(),
+            scorer_backend = str(os.getenv("ACE_STEP_SCORER_BACKEND", "openai")).strip().lower(),
             workers = cls._safe_int(os.getenv("ACE_STEP_SCORE_WORKERS", "12"), 12),
             min_score = cls._safe_float(os.getenv("ACE_STEP_SCORE_MIN", "0.40"), 0.40),
         )
@@ -65,12 +67,15 @@ class StepScoringConfig:
             return cfg
         mode = scratch.get("step_scoring_mode")
         scorer_model = scratch.get("step_scorer_model")
+        scorer_backend = scratch.get("step_scorer_backend")
         workers = scratch.get("step_score_workers")
         min_score = scratch.get("step_score_min")
         if mode:
             cfg.mode = str(mode).strip().lower()
         if scorer_model:
             cfg.scorer_model = str(scorer_model).strip()
+        if scorer_backend:
+            cfg.scorer_backend = str(scorer_backend).strip().lower()
         if workers is not None:
             cfg.workers = cls._safe_int(workers, cfg.workers)
         if min_score is not None:
@@ -197,8 +202,12 @@ def _score_step_with_llm(
     index: int,
     total_steps: int,
     model: str,
+    backend: str,
 ) -> Tuple[Optional[float], str]:
-    llm = LLM(model = model, backend = "openai", temperature = 0.0)
+    backend_norm = str(backend or "openai").strip().lower()
+    if backend_norm not in {"openai", "gemini"}:
+        backend_norm = "openai"
+    llm = LLM(model = model, backend = backend_norm, temperature = 0.0)
     prompt = (
         "Score one reasoning step for correctness and usefulness toward solving the task.\n"
         "Return strict JSON only: {\"score\": float_between_0_and_1, \"reason\": \"short\"}.\n"
@@ -255,6 +264,7 @@ def score_steps(
             "config": {
                 "mode": cfg.mode,
                 "scorer_model": cfg.scorer_model,
+                "scorer_backend": cfg.scorer_backend,
                 "workers": cfg.workers,
                 "min_score": cfg.min_score,
             },
@@ -274,6 +284,7 @@ def score_steps(
             "config": {
                 "mode": cfg.mode,
                 "scorer_model": cfg.scorer_model,
+                "scorer_backend": cfg.scorer_backend,
                 "workers": cfg.workers,
                 "min_score": cfg.min_score,
             },
@@ -305,6 +316,7 @@ def score_steps(
                     idx,
                     len(safe_steps),
                     cfg.scorer_model,
+                    cfg.scorer_backend,
                 )
                 future_map[future] = idx
             for future in as_completed(future_map):
@@ -355,6 +367,7 @@ def score_steps(
         "config": {
             "mode": cfg.mode,
             "scorer_model": cfg.scorer_model,
+            "scorer_backend": cfg.scorer_backend,
             "workers": cfg.workers,
             "min_score": cfg.min_score,
         },
